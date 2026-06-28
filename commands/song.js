@@ -3,6 +3,7 @@ const yts = require('yt-search');
 const fs = require('fs');
 const path = require('path');
 const { toAudio } = require('../lib/converter');
+const ytdlDownloader = require('../lib/ytdl2');
 
 const AXIOS_DEFAULTS = {
         timeout: 60000,
@@ -89,6 +90,30 @@ async function getOkatsuDownloadByUrl(youtubeUrl) {
                 };
         }
         throw new Error('Okatsu ytmp3 returned no download');
+}
+
+async function getLocalDownloadByUrl(youtubeUrl) {
+        const result = await ytdlDownloader.mp3(youtubeUrl);
+        if (!result?.path) {
+                throw new Error('Local YouTube downloader returned no file path');
+        }
+
+        const audioBuffer = await fs.promises.readFile(result.path);
+        try {
+                await fs.promises.unlink(result.path);
+        } catch (_) {
+                // Ignore cleanup errors for temporary local downloads.
+        }
+
+        if (!audioBuffer || audioBuffer.length === 0) {
+                throw new Error('Local YouTube downloader returned an empty file');
+        }
+
+        return {
+                buffer: audioBuffer,
+                title: result?.meta?.title || 'YouTube Audio',
+                thumbnail: result?.meta?.image || result?.meta?.thumbnail
+        };
 }
 
 function extractYouTubeId(input = '') {
@@ -267,9 +292,19 @@ async function songCommand(sock, chatId, message) {
                         }
                 }
                 
-                // If all APIs failed, throw error
+                // If all APIs failed, fall back to the local YouTube downloader.
                 if (!downloadSuccess || !audioBuffer) {
-                        throw new Error('All download sources failed. The content may be unavailable or blocked in your region.');
+                        try {
+                                const localDownload = await getLocalDownloadByUrl(video.url);
+                                audioBuffer = localDownload.buffer;
+                                audioData = {
+                                        title: localDownload.title || audioData?.title || video.title
+                                };
+                                downloadSuccess = true;
+                        } catch (localErr) {
+                                console.log('Local YouTube download failed:', localErr.message);
+                                throw new Error('All download sources failed. The content may be unavailable or blocked in your region.');
+                        }
                 }
 
                 // Validate buffer
