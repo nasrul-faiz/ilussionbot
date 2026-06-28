@@ -173,8 +173,7 @@ async function helpCommand(sock, chatId, message) {
 
 ╔═══════════════════╗
 📥 *Downloader*:
-║ ➤ .play <song_name>
-║ ➤ .song <song_name>
+║ ➤ .ytmp3 <song name or YT link>
 ║ ➤ .spotify <query>
 ║ ➤ .instagram <link>
 ║ ➤ .facebook <link>

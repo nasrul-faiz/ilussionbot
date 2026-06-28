@@ -117,9 +117,8 @@ const { setGroupDescription, setGroupName, setGroupPhoto } = require('./commands
 const instagramCommand = require('./commands/instagram');
 const facebookCommand = require('./commands/facebook');
 const spotifyCommand = require('./commands/spotify');
-const playCommand = require('./commands/play');
+const ytmp3Command = require('./commands/ytmp3');
 const tiktokCommand = require('./commands/tiktok');
-const songCommand = require('./commands/song');
 const toMp3Command = require('./commands/tomp3');
 const aiCommand = require('./commands/ai');
 const urlCommand = require('./commands/url');
@@ -1185,8 +1184,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
             case userMessage.startsWith('.spotify'):
                 await spotifyCommand(sock, chatId, message);
                 break;
-            case userMessage.startsWith('.play') || userMessage.startsWith('.mp3') || userMessage.startsWith('.ytmp3') || userMessage.startsWith('.song'):
-                await songCommand(sock, chatId, message);
+            case userMessage.startsWith('.ytmp3') || userMessage.startsWith('.mp3'):
+                await ytmp3Command(sock, chatId, message);
                 break;
             case userMessage.startsWith('.video') || userMessage.startsWith('.ytmp4'):
                 await videoCommand(sock, chatId, message);
