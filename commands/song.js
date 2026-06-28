@@ -194,6 +194,7 @@ async function resolveVideoFromInput(query) {
                 const matchedUrl = query.match(/https?:\/\/[^\s]+/i);
                 const ytUrl = matchedUrl ? matchedUrl[0] : query;
                 const ytId = extractYouTubeId(ytUrl);
+                const canonicalUrl = ytId ? `https://www.youtube.com/watch?v=${ytId}` : ytUrl;
                 const fallbackThumb = ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : undefined;
 
                 let metadata = null;
@@ -208,7 +209,7 @@ async function resolveVideoFromInput(query) {
                 }
 
                 return {
-                        url: ytUrl,
+                        url: canonicalUrl,
                         title: metadata?.title || 'YouTube Audio',
                         timestamp: metadata?.timestamp || formatDuration(metadata?.seconds),
                         thumbnail: metadata?.thumbnail || fallbackThumb
