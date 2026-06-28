@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { toAudio } = require('../lib/converter');
 const ytdlDownloader = require('../lib/ytdl2');
+const youtubedl = require('youtubedl-core');
 
 const AXIOS_DEFAULTS = {
         timeout: 60000,
@@ -116,6 +117,60 @@ async function getLocalDownloadByUrl(youtubeUrl) {
         };
 }
 
+async function getYoutubedlCoreDownloadByUrl(youtubeUrl) {
+        const tempDir = path.join(process.cwd(), 'tmp');
+        await fs.promises.mkdir(tempDir, { recursive: true });
+
+        const tempFilePath = path.join(tempDir, `song-${Date.now()}-${Math.floor(Math.random() * 10000)}.m4a`);
+
+        try {
+                await new Promise((resolve, reject) => {
+                        const stream = youtubedl(youtubeUrl, {
+                                format: 'bestaudio/best',
+                                noCheckCertificates: true,
+                                noWarnings: true,
+                                preferFreeFormats: true,
+                                addHeader: [
+                                        'referer:youtube.com',
+                                        'user-agent:googlebot'
+                                ]
+                        });
+
+                        const fileStream = fs.createWriteStream(tempFilePath);
+                        let settled = false;
+
+                        const done = (err) => {
+                                if (settled) return;
+                                settled = true;
+                                if (err) reject(err);
+                                else resolve();
+                        };
+
+                        stream.on('error', done);
+                        fileStream.on('error', done);
+                        fileStream.on('finish', () => done());
+
+                        stream.pipe(fileStream);
+                });
+
+                const audioBuffer = await fs.promises.readFile(tempFilePath);
+                if (!audioBuffer || audioBuffer.length === 0) {
+                        throw new Error('youtubedl-core produced an empty file');
+                }
+
+                return {
+                        buffer: audioBuffer,
+                        title: 'YouTube Audio'
+                };
+        } finally {
+                try {
+                        await fs.promises.unlink(tempFilePath);
+                } catch (_) {
+                        // Ignore temp cleanup errors.
+                }
+        }
+}
+
 function extractYouTubeId(input = '') {
         return (input.match(/(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/)?)([a-zA-Z0-9_-]{11})/) || [])[1] || '';
 }
@@ -222,9 +277,10 @@ async function songCommand(sock, chatId, message) {
                                 try {
                                         const audioResponse = await axios.get(audioUrl, {
                                                 responseType: 'arraybuffer',
-                                                timeout: 90000,
+                                                timeout: 45000,
                                                 maxContentLength: Infinity,
                                                 maxBodyLength: Infinity,
+                                                maxRedirects: 5,
                                                 decompress: true,
                                                 validateStatus: s => s >= 200 && s < 400,
                                                 headers: {
@@ -243,6 +299,10 @@ async function songCommand(sock, chatId, message) {
                                 } catch (downloadErr) {
                                         // Check if it's a 451 error or other client/server error
                                         const statusCode = downloadErr.response?.status || downloadErr.status;
+                                        if (downloadErr?.code === 'ERR_FR_TOO_MANY_REDIRECTS') {
+                                                console.log(`Too many redirects from ${apiMethod.name}, trying next API...`);
+                                                continue;
+                                        }
                                         if (statusCode === 451) {
                                                 console.log(`Download blocked (451) from ${apiMethod.name}, trying next API...`);
                                                 continue; // Try next API
@@ -252,9 +312,10 @@ async function songCommand(sock, chatId, message) {
                                         try {
                                                 const audioResponse = await axios.get(audioUrl, {
                                                         responseType: 'stream',
-                                                        timeout: 90000,
+                                                        timeout: 45000,
                                                         maxContentLength: Infinity,
                                                         maxBodyLength: Infinity,
+                                                        maxRedirects: 5,
                                                         validateStatus: s => s >= 200 && s < 400,
                                                         headers: {
                                                                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -303,7 +364,17 @@ async function songCommand(sock, chatId, message) {
                                 downloadSuccess = true;
                         } catch (localErr) {
                                 console.log('Local YouTube download failed:', localErr.message);
-                                throw new Error('All download sources failed. The content may be unavailable or blocked in your region.');
+                                try {
+                                        const altLocalDownload = await getYoutubedlCoreDownloadByUrl(video.url);
+                                        audioBuffer = altLocalDownload.buffer;
+                                        audioData = {
+                                                title: altLocalDownload.title || audioData?.title || video.title
+                                        };
+                                        downloadSuccess = true;
+                                } catch (altErr) {
+                                        console.log('youtubedl-core fallback failed:', altErr.message);
+                                        throw new Error('All download sources failed. The content may be unavailable or blocked in your region.');
+                                }
                         }
                 }
 
@@ -418,6 +489,8 @@ async function songCommand(sock, chatId, message) {
             errorMessage = '❌ Download blocked. The content may be unavailable in your region or due to legal restrictions.';
         } else if (err.response?.status === 451 || err.status === 451) {
             errorMessage = '❌ Content unavailable (451). This may be due to legal restrictions or regional blocking.';
+                } else if (err.message && /confirm you.?re not a bot|sign in to confirm/i.test(err.message)) {
+                        errorMessage = '❌ YouTube temporary anti-bot block detected. Please try another song/link or retry in a few minutes.';
         } else if (err.message && err.message.includes('All download sources failed')) {
             errorMessage = '❌ All download sources failed. The content may be unavailable or blocked.';
         }
