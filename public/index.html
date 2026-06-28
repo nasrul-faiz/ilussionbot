@@ -1,0 +1,2341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ilussion Bot Dashboard 🤖💚</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #09090b;
+    --surface: #18181b;
+    --surface2: #27272a;
+    --border: #27272a;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --pink: #ff9ed8;
+    --lav: #b39dff;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --blue: #3b82f6;
+    --text: #fafafa;
+    --text-dim: #a1a1aa;
+    --list-row-border: rgba(63, 63, 70, .48);
+    --list-card-border: rgba(63, 63, 70, .62);
+    --list-head-border: rgba(82, 82, 91, .55);
+    --list-header-bg: rgba(39, 39, 42, .72);
+    --list-card-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    --radius: 8px;
+  }
+  body[data-theme='light'] {
+    --bg: #f6f8fb;
+    --surface: #ffffff;
+    --surface2: #eef2f7;
+    --border: #d8e0eb;
+    --green: #16a34a;
+    --green-dim: #15803d;
+    --pink: #db2777;
+    --lav: #6366f1;
+    --red: #dc2626;
+    --yellow: #ca8a04;
+    --blue: #2563eb;
+    --text: #0f172a;
+    --text-dim: #475569;
+    --list-row-border: rgba(148, 163, 184, .55);
+    --list-card-border: rgba(148, 163, 184, .62);
+    --list-head-border: rgba(148, 163, 184, .52);
+    --list-header-bg: rgba(241, 245, 249, .95);
+    --list-card-shadow: 0 6px 20px rgba(15, 23, 42, .08);
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; font-size: 14px; -webkit-font-smoothing: antialiased; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  /* App shell + sidebar */
+  .app { display: flex; min-height: 100dvh; }
+  .sidebar { width: 248px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); padding: 16px 12px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 2px; position: fixed; left: 0; top: 0; height: 100dvh; max-height: 100dvh; z-index: 200; transform: translateX(-260px); transition: transform .25s ease; overflow-x: hidden; overflow-y: auto; }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 32px rgba(0,0,0,.6); }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; color: var(--text); padding: 6px 6px 14px; }
+  .brand-icon { width: 32px; height: 32px; padding: 6px; box-sizing: border-box; color: var(--green); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; flex-shrink: 0; cursor: pointer; }
+  .side-label { font-size: 11px; font-weight: 500; color: var(--text-dim); padding: 8px 10px 6px; letter-spacing: .02em; white-space: nowrap; }
+  .side-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: none; background: none; color: var(--text-dim); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; text-align: left; width: 100%; transition: background .12s, color .12s; white-space: nowrap; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--surface2); color: var(--text); }
+  .nav-emoji { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .side-status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-dim); padding: 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); animation: none; flex-shrink: 0; }
+  .dot.online { background: var(--green); animation: pulse 2s infinite; }
+  .main { flex: 1; min-width: 0; overflow-x: hidden; width: 100%; }
+  /* FAB to open sidebar */
+  .menu-fab { position: fixed; top: 16px; left: 16px; z-index: 100; width: 40px; height: 40px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, border-color .15s; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+  .menu-fab:hover { background: var(--surface2); border-color: var(--green); }
+  .menu-fab svg { width: 22px; height: 22px; color: var(--green); }
+
+  /* Layout */
+  .container { max-width: 1100px; margin: 0 auto; padding: 28px 22px 44px; }
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .card-title { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card-title svg { width: 16px; height: 16px; }
+
+  /* Stat cards */
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .stat-label { font-size: 12px; color: var(--text-dim); }
+  .stat-value { font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 600; letter-spacing: -.02em; color: var(--text); }
+  .stat-icon { font-size: 22px; margin-bottom: 4px; }
+
+  /* Status card */
+  .status-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; display: flex; align-items: center; gap: 20px; }
+  .status-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--green-dim); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; position: relative; overflow: hidden; }
+  .status-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .status-badge { position: absolute; bottom: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); border: 2px solid var(--surface); }
+  .status-badge.online { background: var(--green); }
+  .status-info { flex: 1; }
+  .status-name { font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -.01em; }
+  .status-number { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+  .status-meta { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .status-meta-item { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+  .status-meta-item.online { color: var(--green); }
+  .status-meta-item.offline { color: var(--red); }
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: rgba(34,197,94,.15); color: var(--green); }
+  .badge-blue { background: rgba(59,130,246,.15); color: var(--blue); }
+  .badge-yellow { background: rgba(234,179,8,.15); color: var(--yellow); }
+  .badge-red { background: rgba(239,68,68,.15); color: var(--red); }
+  .uptime { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+  /* Settings form */
+  .form-group { margin-bottom: 16px; }
+  label { display: block; font-size: 13px; color: var(--text); margin-bottom: 7px; font-weight: 500; }
+  input, select, textarea {
+    width: 100%; background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 14px;
+    outline: none; font-family: 'Inter', sans-serif; transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--text-dim); box-shadow: 0 0 0 3px rgba(255,255,255,.06); }
+  select option { background: var(--surface2); }
+
+  /* Buttons */
+  .btn { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; transition: all .15s; }
+  .btn-green { background: var(--green); color: #000; }
+  .btn-green:hover { background: var(--green-dim); }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { border-color: var(--green); color: var(--green); }
+  .btn-sm { padding: 5px 14px; font-size: 12px; }
+
+  /* Logs */
+  .log-container { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; height: 320px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; }
+  .log-entry { padding: 3px 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-time { color: var(--text-dim); margin-right: 8px; }
+  .log-info .log-msg { color: var(--text); }
+  .log-error .log-msg { color: var(--red); }
+  .log-empty { color: var(--text-dim); font-style: italic; padding: 8px 0; }
+
+  /* Toggle switch */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-info { font-size: 14px; }
+  .toggle-info small { display: block; font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .toggle { position: relative; width: 42px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: var(--surface2); border-radius: 22px; cursor: pointer; border: 1px solid var(--border); transition: .2s; }
+  .slider::before { content: ''; position: absolute; width: 16px; height: 16px; background: var(--text-dim); border-radius: 50%; top: 2px; left: 2px; transition: .2s; }
+  input:checked + .slider { background: var(--green-dim); border-color: var(--green); }
+  input:checked + .slider::before { transform: translateX(20px); background: #fff; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-size: 14px; z-index: 999; transform: translateY(100px); opacity: 0; transition: all .3s; max-width: 320px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+
+  /* Custom command polish */
+  .cc-grid { gap: 18px; }
+  .cc-panel {
+    background:
+      radial-gradient(120% 120% at 110% -20%, rgba(34,197,94,.12), transparent 52%),
+      radial-gradient(120% 120% at -10% -30%, rgba(59,130,246,.10), transparent 45%),
+      var(--surface);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .cc-help {
+    border: 1px dashed rgba(255,255,255,.16);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,.02);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .cc-button-row {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(0,0,0,.18);
+  }
+  body[data-theme='light'] .cc-panel {
+    background:
+      radial-gradient(120% 120% at 110% -20%, rgba(22,163,74,.12), transparent 52%),
+      radial-gradient(120% 120% at -10% -30%, rgba(37,99,235,.08), transparent 45%),
+      var(--surface);
+    border: 1px solid rgba(15,23,42,.08);
+    box-shadow: 0 8px 26px rgba(15,23,42,.08);
+  }
+  body[data-theme='light'] .cc-help {
+    border: 1px dashed rgba(15,23,42,.16);
+    background: rgba(148,163,184,.10);
+  }
+  body[data-theme='light'] .cc-button-row {
+    border: 1px solid rgba(15,23,42,.14);
+    background: rgba(148,163,184,.12);
+  }
+  .cc-button-extra { margin-top: 8px; }
+  .cc-button-hint { font-size: 11px; color: var(--text-dim); margin-top: 5px; }
+  .cc-select-builder { margin-top: 10px; padding: 10px; border: 1px dashed rgba(255,255,255,.14); border-radius: 8px; background: rgba(255,255,255,.03); }
+  body[data-theme='light'] .cc-select-builder { border: 1px dashed rgba(15,23,42,.18); background: rgba(148,163,184,.08); }
+  .cc-select-row { display: grid; grid-template-columns: 1fr 1.5fr 1.5fr auto; gap: 6px; align-items: end; margin-bottom: 6px; }
+  .cc-select-row input { font-size: 12px; padding: 6px 8px; }
+  .theme-toggle {
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .theme-toggle:hover { border-color: var(--green); color: var(--green); }
+  .sidebar-theme { padding: 8px 10px 6px; border-top: 1px solid var(--border); margin-top: 4px; }
+  .sidebar-theme .theme-toggle { width: 100%; margin: 0; }
+  .action-select-delete {
+    color: var(--red);
+    font-weight: 600;
+  }
+  .cc-button-extra textarea {
+    min-height: 86px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 12px;
+  }
+  .cc-badge-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(34,197,94,.35);
+    background: rgba(34,197,94,.12);
+    color: #8bf4b4;
+    font-size: 11px;
+    margin-left: 6px;
+  }
+
+  @media (max-width: 600px) {
+    .status-card { flex-direction: column; text-align: center; }
+    .status-meta { justify-content: center; }
+  }
+  /* Dim overlay behind open sidebar */
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 199; }
+  .sidebar-overlay.active { display: block; }
+  .list-frame {
+    border: 1px solid var(--list-card-border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--list-card-shadow);
+  }
+  .list-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--list-head-border);
+    background: var(--list-header-bg);
+  }
+  .list-head-row {
+    border-bottom: 1px solid var(--list-head-border);
+  }
+  .list-row {
+    border-bottom: 1px solid var(--list-row-border);
+  }
+  .list-table tbody .list-row:last-child {
+    border-bottom: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<!-- FAB: click WhatsApp icon to open sidebar -->
+<button class="menu-fab" onclick="openSidebar()" id="menuFab" title="Open menu">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</button>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <svg class="brand-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      <span class="brandtext">Ilussion Bot</span>
+    </div>
+    <div class="side-label">Menu</div>
+    <nav class="side-nav">
+      <button class="nav-item active" onclick="showTab('settings', this)" title="Bot Setting"><span class="nav-emoji">⚙️</span> <span class="nav-label">Bot Setting</span></button>
+      <button class="nav-item" onclick="showTab('groupsettings', this)" title="Group Setting"><span class="nav-emoji">👥</span> <span class="nav-label">Group Setting</span></button>
+      <button class="nav-item" onclick="showTab('schedules', this)" title="Schedules"><span class="nav-emoji">⏰</span> <span class="nav-label">Schedules</span></button>
+      <button class="nav-item" onclick="showTab('customcmds', this)" title="Custom Commands"><span class="nav-emoji">🤖</span> <span class="nav-label">Custom Commands</span></button>
+    </nav>
+    <div class="side-status">
+      <div class="dot" id="navDot"></div>
+      <span id="navStatusText" class="side-status-text">Checking...</span>
+    </div>
+    <div class="sidebar-theme">
+      <button id="themeToggleBtn" class="theme-toggle" onclick="toggleTheme()" title="Switch light/dark mode">🌙 Dark</button>
+    </div>
+  </aside>
+  <main class="main">
+<div class="container">
+
+  <!-- Status Card -->
+  <div class="status-card" style="margin-bottom:16px" id="statusCard">
+    <div class="status-avatar" id="statusAvatar">
+      <img id="profilePic" src="" alt="" style="display:none" onerror="this.style.display='none';document.getElementById('avatarEmoji').style.display=''" />
+      <span id="avatarEmoji">🤖</span>
+      <div class="status-badge" id="statusBadge"></div>
+    </div>
+    <div class="status-info">
+      <div class="status-name" id="statusName">Loading...</div>
+      <div class="status-number" id="statusNumber"></div>
+      <div class="status-meta" id="statusMeta"></div>
+      <div class="uptime" id="statusUptime"></div>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+
+  <!-- Settings Tab -->
+  <div id="tab-settings">
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+          Bot Identity
+        </div>
+        <div class="form-group">
+          <label>Bot Name</label>
+          <input type="text" id="botName" placeholder="Ilussion Bot" />
+        </div>
+        <div class="form-group">
+          <label>Bot Owner Name</label>
+          <input type="text" id="botOwner" placeholder="Professor" />
+        </div>
+        <div class="form-group">
+          <label>Pack Name (Stickers)</label>
+          <input type="text" id="packname" placeholder="Ilussion Bot" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="description" placeholder="Bot description..." />
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Access & Control
+        </div>
+        <div class="form-group">
+          <label>Owner Number <span style="color:var(--text-dim)">(without + or spaces)</span></label>
+          <input type="text" id="ownerNumber" placeholder="919876543210" />
+        </div>
+        <div class="form-group">
+          <label>Command Mode</label>
+          <select id="commandMode">
+            <option value="public">Public — Anyone can use commands</option>
+            <option value="private">Private — Owner only</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Timezone <span style="color:var(--text-dim)">(popular list)</span></label>
+          <select id="timeZone">
+            <option value="Asia/Kuala_Lumpur">Asia/Kuala_Lumpur (MY)</option>
+            <option value="Asia/Jakarta">Asia/Jakarta (ID - WIB)</option>
+            <option value="Asia/Makassar">Asia/Makassar (ID - WITA)</option>
+            <option value="Asia/Jayapura">Asia/Jayapura (ID - WIT)</option>
+            <option value="Asia/Singapore">Asia/Singapore (SG)</option>
+            <option value="Asia/Bangkok">Asia/Bangkok (TH)</option>
+            <option value="Asia/Manila">Asia/Manila (PH)</option>
+            <option value="Asia/Tokyo">Asia/Tokyo (JP)</option>
+            <option value="Asia/Seoul">Asia/Seoul (KR)</option>
+            <option value="Europe/London">Europe/London (UK)</option>
+            <option value="America/New_York">America/New_York (US ET)</option>
+            <option value="UTC">UTC</option>
+          </select>
+        </div>
+        <div style="margin-top:24px">
+          <button class="btn btn-green" onclick="saveSettings()" style="width:100%">💾 Save Settings</button>
+          <p style="font-size:12px;color:var(--text-dim);margin-top:8px;text-align:center">Bot akan auto-restart selepas simpan settings.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Console Logs
+          </span>
+          <button class="btn btn-outline btn-sm" onclick="loadLogs()">↻ Refresh</button>
+        </div>
+        <div class="log-container" id="logContainer">
+          <div class="log-empty">Loading logs...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zm3 3h4v4h-4zm-3 3h3"/></svg>
+          Session Management
+        </div>
+
+        <div id="sessionInfoGrid" style="margin-bottom:16px;display:flex;flex-direction:column;gap:0">
+          <div style="font-size:13px;color:var(--text-dim);padding:8px 0">Loading session info...</div>
+        </div>
+
+        <div id="qrConnected" style="display:none;text-align:center;padding:10px 0;width:100%">
+          <div style="font-size:40px;margin-bottom:8px">✅</div>
+          <div style="font-weight:700;font-size:15px;color:var(--green)">Bot Connected</div>
+          <div id="qrConnectedAccount" style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:13px;text-align:left;line-height:1.8"></div>
+        </div>
+
+        <div id="qrWaiting" style="display:none;text-align:center;padding:16px">
+          <div class="qr-spin" style="font-size:40px;margin-bottom:10px">⏳</div>
+          <div style="font-weight:600;font-size:14px">Generating QR Code...</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:4px">Please wait a moment.</div>
+        </div>
+
+        <div id="qrImageWrap" style="display:none;text-align:center;margin-bottom:10px">
+          <div style="background:#fff;padding:10px;border-radius:12px;display:inline-block;box-shadow:0 0 0 4px rgba(37,211,102,.3)">
+            <img id="qrImage" src="" alt="QR Code" style="width:200px;height:200px;display:block" />
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--text-dim)">Open WhatsApp → Linked Devices → Link a Device</div>
+          <div id="qrExpiry" style="margin-top:4px;font-size:12px;color:var(--yellow)"></div>
+        </div>
+
+        <div id="qrDefault" style="text-align:center;padding:10px">
+          <div style="font-size:34px;margin-bottom:8px">📱</div>
+          <div style="font-size:13px;color:var(--text-dim)">Loading session state...</div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-outline btn-sm" onclick="loadSession()" style="flex:1">↻ Refresh Session</button>
+          <button class="btn btn-sm" style="background:rgba(248,81,73,.15);color:var(--red);border:1px solid var(--red);flex:1" onclick="confirmReset()">🔓 Clear Session</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group Setting Tab -->
+  <div id="tab-groupsettings" style="display:none">
+    <div class="grid" style="gap:16px">
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Auto Features
+        </div>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px">These are read from the bot's data files. To toggle them, use the corresponding bot commands in WhatsApp.</p>
+        <div id="featuresContent"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            Groups
+          </span>
+          <button class="btn btn-outline btn-sm" onclick="loadGroups()">↻ Refresh</button>
+        </div>
+        <div id="groupsContent"><p style="color:var(--text-dim);font-size:13px">Loading...</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          Banned Users
+        </div>
+        <div id="bannedContent">
+          <p style="color:var(--text-dim);font-size:13px">Loading...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logs Tab -->
+  <div id="tab-schedules" style="display:none">
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title">⏰ Add Scheduled Chat</div>
+        <div class="form-group">
+          <label>Target Chat / Group</label>
+          <select id="scheduleChatId"></select>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="scheduleType" onchange="toggleScheduleDateField()">
+            <option value="daily">Daily</option>
+            <option value="once">Once</option>
+          </select>
+        </div>
+        <div class="form-group" id="scheduleDateWrap" style="display:none">
+          <label>Date (YYYY-MM-DD)</label>
+          <input type="date" id="scheduleDate" style="max-width:190px" />
+        </div>
+        <div class="form-group">
+          <label>Time (HH:MM)</label>
+          <input type="time" id="scheduleTime" style="max-width:190px" />
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="scheduleMessage" rows="4" placeholder="Scheduled message..."></textarea>
+        </div>
+        <button class="btn btn-green" onclick="addSchedule()" style="width:100%">➕ Add Schedule</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📌 Tips</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.8">
+          <div>• Type <b style="color:var(--text)">Daily</b> akan hantar mesej setiap hari pada jam yang ditetapkan.</div>
+          <div>• Type <b style="color:var(--text)">Once</b> akan hantar sekali sahaja pada tarikh + masa dipilih.</div>
+          <div>• Anda boleh edit atau delete schedule dari senarai di bawah.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span>📋 Scheduled Chat List</span>
+        <button class="btn btn-outline btn-sm" onclick="loadSchedules(true)">↻ Refresh</button>
+      </div>
+      <div id="schedulesContent"><p style="color:var(--text-dim);font-size:13px">Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- Custom Commands Tab -->
+  <div id="tab-customcmds" style="display:none">
+    <div class="grid grid-2 cc-grid" style="margin-bottom:16px">
+
+      <!-- Add Command Form -->
+      <div class="card cc-panel">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Custom Command
+        </div>
+        <div class="form-group">
+          <label>Step 1: Media Type</label>
+          <select id="ccMediaType" onchange="toggleMediaFields()">
+            <option value="">— Choose media type first —</option>
+            <option value="text">📝 Text</option>
+            <option value="image">🖼️ Image</option>
+            <option value="video">🎬 Video</option>
+            <option value="audio">🎵 Audio / Music</option>
+            <option value="document">📄 File / Document</option>
+            <option value="url">🔗 URL / Link</option>
+          </select>
+        </div>
+        <div id="ccComposeFields" style="display:none">
+        <div class="form-group">
+          <label>Step 2: Trigger <span style="color:var(--text-dim)">(must start with .)</span></label>
+          <input type="text" id="ccTrigger" placeholder=".hello" />
+        </div>
+        <div class="form-group" id="ccResponseWrap" style="display:none">
+          <label id="ccResponseLabel">Response</label>
+          <textarea id="ccResponse" rows="4" placeholder="Hello! Welcome to the group 👋"></textarea>
+        </div>
+        <div id="ccMediaSection" style="display:none;border-top:1px solid var(--border);margin:16px 0 14px;padding-top:14px">
+          <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">📎 Media Attachment</div>
+          <div id="ccMediaUrlWrap" style="display:none">
+            <div class="form-group" id="ccMediaSourceWrap">
+              <label>Source</label>
+              <div style="display:flex;gap:6px">
+                <button id="ccSrcUrlBtn" onclick="setCcSource('url')" style="flex:1;padding:7px;border-radius:6px;border:1px solid var(--green);background:var(--green);color:#000;font-size:12px;font-weight:600;cursor:pointer">🔗 From URL</button>
+                <button id="ccSrcUploadBtn" onclick="setCcSource('upload')" style="flex:1;padding:7px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer">⬆️ Upload File</button>
+              </div>
+            </div>
+            <div class="form-group" id="ccUrlInput">
+              <label>Media URL</label>
+              <input type="url" id="ccMediaUrl" placeholder="https://example.com/image.jpg" />
+            </div>
+            <div class="form-group" id="ccUploadInput" style="display:none">
+              <label>Upload File <span style="color:var(--text-dim)">(max 64 MB)</span></label>
+              <div id="ccDropZone" onclick="document.getElementById('ccMediaFile').click()" style="border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s" onmouseenter="this.style.borderColor='var(--green)'" onmouseleave="this.style.borderColor='var(--border)'">
+                <div id="ccDropText" style="color:var(--text-dim);font-size:13px">📂 Click to browse, or drag & drop here</div>
+                <div id="ccUploadProgress" style="display:none;margin-top:8px">
+                  <div style="background:var(--surface2);border-radius:4px;height:6px;overflow:hidden"><div id="ccUploadBar" style="height:100%;background:var(--green);width:0%;transition:width .3s"></div></div>
+                  <div id="ccUploadStatus" style="font-size:12px;color:var(--text-dim);margin-top:4px"></div>
+                </div>
+              </div>
+              <input type="file" id="ccMediaFile" style="display:none" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt" onchange="handleCcFileChange()" />
+              <input type="hidden" id="ccUploadedUrl" />
+            </div>
+          </div>
+          <div class="form-group" id="ccFileNameWrap" style="display:none">
+            <label>File Name <span style="color:var(--text-dim)">(shown to receiver)</span></label>
+            <input type="text" id="ccFileName" placeholder="file.pdf" />
+          </div>
+        </div>
+        <div class="form-group" id="ccButtonsWrap" style="display:none">
+          <label>Step 3: Buttons <span style="color:var(--text-dim)">(optional)</span></label>
+          <div class="cc-help" style="margin-bottom:8px">Supported UI types: <b style="color:var(--text)">quick_reply</b>, <b style="color:var(--text)">cta_url</b>, <b style="color:var(--text)">cta_call</b>, <b style="color:var(--text)">cta_copy</b>, <b style="color:var(--text)">single_select</b>.</div>
+          <div id="ccButtonsContainer" style="display:flex;flex-direction:column;gap:8px"></div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="addCcButtonRow('ccButtonsContainer')" style="margin-top:8px">+ Add Button</button>
+        </div>
+        <div class="form-group" id="ccCategoryWrap" style="display:none">
+          <label>Step 4: Category</label>
+          <select id="ccCategory">
+            <option value="General">General</option>
+            <option value="Greeting">Greeting</option>
+            <option value="Info">Info</option>
+            <option value="Utility">Utility</option>
+            <option value="Fun">Fun</option>
+            <option value="Media">Media</option>
+            <option value="Moderation">Moderation</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group" id="ccDescriptionWrap" style="display:none">
+          <label>Description <span style="color:var(--text-dim)">(optional)</span></label>
+          <input type="text" id="ccDescription" placeholder="Greeting command" />
+        </div>
+        </div>
+        <button class="btn btn-green" onclick="addCustomCommand()" style="width:100%">➕ Add Command</button>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:8px;text-align:center">Command is active immediately — no restart needed.</p>
+      </div>
+
+      <!-- Info Panel -->
+      <div class="card cc-panel" style="display:flex;flex-direction:column;gap:12px">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Custom Command Guide
+        </div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.7">
+          Bina command berbutang dengan format visual. Dashboard ini terus hasilkan struktur JSON yang serasi dengan interactive message di atexovi-baileys.
+        </div>
+        <button class="btn btn-outline" onclick="openCcGuideModal()">📘 How It Works</button>
+        <div id="ccStats" style="font-size:13px;color:var(--text-dim);padding:10px;background:var(--surface2);border-radius:8px;text-align:center"></div>
+      </div>
+    </div>
+
+    <!-- Commands List -->
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Saved Commands
+        </span>
+        <button class="btn btn-outline btn-sm" onclick="loadCustomCommands()">↻ Refresh</button>
+      </div>
+      <div id="ccList"><p style="color:var(--text-dim);font-size:13px">Loading...</p></div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="ccEditModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;overflow-y:auto">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:480px;width:92%;margin:auto">
+        <div style="font-size:16px;font-weight:700;margin-bottom:16px">✏️ Edit Command <span id="ccEditTriggerLabel" style="color:var(--green)"></span></div>
+        <input type="hidden" id="ccEditTrigger" />
+        <div class="form-group">
+          <label>Response <span style="color:var(--text-dim)">(caption if media is attached)</span></label>
+          <textarea id="ccEditResponse" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Description <span style="color:var(--text-dim)">(optional)</span></label>
+          <input type="text" id="ccEditDescription" />
+        </div>
+        <div class="form-group">
+          <label>Buttons <span style="color:var(--text-dim)">(optional)</span></label>
+          <div id="ccEditButtonsContainer" style="display:flex;flex-direction:column;gap:8px"></div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="addCcButtonRow('ccEditButtonsContainer')" style="margin-top:8px">+ Add Button</button>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="ccEditCategory">
+            <option value="General">General</option>
+            <option value="Greeting">Greeting</option>
+            <option value="Info">Info</option>
+            <option value="Utility">Utility</option>
+            <option value="Fun">Fun</option>
+            <option value="Media">Media</option>
+            <option value="Moderation">Moderation</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="border-top:1px solid var(--border);margin:14px 0 12px;padding-top:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📎 Media Attachment</div>
+          <div class="form-group">
+            <label>Media Type</label>
+            <select id="ccEditMediaType" onchange="toggleEditMediaFields()">
+              <option value="">— Text only —</option>
+              <option value="image">🖼️ Image</option>
+              <option value="video">🎬 Video</option>
+              <option value="audio">🎵 Audio / Music</option>
+              <option value="document">📄 File / Document</option>
+            </select>
+          </div>
+          <div id="ccEditMediaUrlWrap" style="display:none">
+            <div class="form-group">
+              <label>Source</label>
+              <div style="display:flex;gap:6px">
+                <button id="ccEditSrcUrlBtn" onclick="setCcEditSource('url')" style="flex:1;padding:7px;border-radius:6px;border:1px solid var(--green);background:var(--green);color:#000;font-size:12px;font-weight:600;cursor:pointer">🔗 From URL</button>
+                <button id="ccEditSrcUploadBtn" onclick="setCcEditSource('upload')" style="flex:1;padding:7px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer">⬆️ Upload File</button>
+              </div>
+            </div>
+            <div class="form-group" id="ccEditUrlInput">
+              <label>Media URL</label>
+              <input type="url" id="ccEditMediaUrl" placeholder="https://example.com/file.jpg" />
+            </div>
+            <div class="form-group" id="ccEditUploadInput" style="display:none">
+              <label>Upload File <span style="color:var(--text-dim)">(max 64 MB)</span></label>
+              <div id="ccEditDropZone" onclick="document.getElementById('ccEditMediaFile').click()" style="border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s" onmouseenter="this.style.borderColor='var(--green)'" onmouseleave="this.style.borderColor='var(--border)'">
+                <div id="ccEditDropText" style="color:var(--text-dim);font-size:13px">📂 Click to browse, or drag & drop here</div>
+                <div id="ccEditUploadProgress" style="display:none;margin-top:8px">
+                  <div style="background:var(--surface2);border-radius:4px;height:6px;overflow:hidden"><div id="ccEditUploadBar" style="height:100%;background:var(--green);width:0%;transition:width .3s"></div></div>
+                  <div id="ccEditUploadStatus" style="font-size:12px;color:var(--text-dim);margin-top:4px"></div>
+                </div>
+              </div>
+              <input type="file" id="ccEditMediaFile" style="display:none" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt" onchange="handleCcEditFileChange()" />
+              <input type="hidden" id="ccEditUploadedUrl" />
+            </div>
+          </div>
+          <div class="form-group" id="ccEditFileNameWrap" style="display:none">
+            <label>File Name <span style="color:var(--text-dim)">(shown to receiver)</span></label>
+            <input type="text" id="ccEditFileName" placeholder="file.pdf" />
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button class="btn btn-outline" onclick="closeCcEditModal()">Cancel</button>
+          <button class="btn btn-green" onclick="saveEditCustomCommand()">💾 Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Modal -->
+    <div id="ccViewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:205;align-items:center;justify-content:center;overflow-y:auto" onclick="if(event.target===this) closeCcViewModal()">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:540px;width:92%;margin:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px">
+          <div style="font-size:16px;font-weight:700">👁️ View Command <span id="ccViewTriggerLabel" style="color:var(--green)"></span></div>
+          <button class="btn btn-outline btn-sm" onclick="closeCcViewModal()">✕ Close</button>
+        </div>
+        <div style="display:grid;gap:10px;font-size:13px">
+          <div><b style="color:var(--text)">Description:</b> <span id="ccViewDescription" style="color:var(--text-dim)">—</span></div>
+          <div><b style="color:var(--text)">Category:</b> <span id="ccViewCategory" style="color:var(--text-dim)">—</span></div>
+          <div><b style="color:var(--text)">Media Type:</b> <span id="ccViewMediaType" style="color:var(--text-dim)">—</span></div>
+          <div><b style="color:var(--text)">Media URL:</b> <span id="ccViewMediaUrl" style="color:var(--text-dim)">—</span></div>
+          <div><b style="color:var(--text)">Response:</b></div>
+          <div id="ccViewResponse" style="white-space:pre-wrap;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text-dim)">—</div>
+          <div><b style="color:var(--text)">Buttons:</b> <span id="ccViewButtons" style="color:var(--text-dim)">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works Modal -->
+    <div id="ccGuideModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:210;align-items:center;justify-content:center;overflow-y:auto" onclick="if(event.target===this) closeCcGuideModal()">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:560px;width:92%;margin:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="font-size:16px;font-weight:700">📘 How Custom Commands Work</div>
+          <button class="btn btn-outline btn-sm" onclick="closeCcGuideModal()">✕ Close</button>
+        </div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.7">
+          <b style="color:var(--text)">Trigger</b> — command yang user taip di WhatsApp. Contoh: <code style="background:var(--surface2);padding:1px 6px;border-radius:3px">.hello</code><br><br>
+          <b style="color:var(--text)">Response</b> — mesej balasan bot (boleh teks, emoji, caption media).<br><br>
+          <b style="color:var(--text)">Buttons</b> — sokong semua type di README package: quick reply, URL, call, copy, dan single select (list).<br><br>
+          <b style="color:var(--text)">Category</b> — untuk susun command dalam dashboard (General, Fun, Utility, dll).<br><br>
+          <b style="color:var(--text)">Works in</b> — group dan private chat.<br><br>
+          <b style="color:var(--text)">Priority</b> — custom command jalan selepas built-in command, jadi tak override command asal bot.
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;color:var(--text-dim);margin-top:12px">
+          💡 <b>Tip:</b> guna <code style="background:var(--bg);padding:1px 5px;border-radius:3px">\n</code> untuk line break. Contoh: <code style="background:var(--bg);padding:1px 5px;border-radius:3px">Line 1\nLine 2</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:360px;width:90%;text-align:center">
+      <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:8px">Clear Session?</div>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:20px;line-height:1.6">This will disconnect the current WhatsApp account and show a new QR code. The bot will be offline for ~10 seconds.</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn" style="background:var(--red);color:#fff" onclick="doReset()">Yes, Clear It</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+let currentStatus = null
+
+function getStoredTheme() {
+  const saved = localStorage.getItem('dashboardTheme')
+  if (saved === 'light' || saved === 'dark') return saved
+  return 'dark'
+}
+
+function applyTheme(theme) {
+  const selectedTheme = theme === 'light' ? 'light' : 'dark'
+  document.body.setAttribute('data-theme', selectedTheme)
+  localStorage.setItem('dashboardTheme', selectedTheme)
+  const btn = document.getElementById('themeToggleBtn')
+  if (btn) {
+    btn.textContent = selectedTheme === 'light' ? '☀️ Light' : '🌙 Dark'
+  }
+}
+
+function toggleTheme() {
+  const current = document.body.getAttribute('data-theme') || getStoredTheme()
+  applyTheme(current === 'light' ? 'dark' : 'light')
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast')
+  t.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg
+  t.className = `toast ${type} show`
+  setTimeout(() => t.className = 'toast', 3000)
+}
+
+function formatUptime(s) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60)
+  if (h > 0) return `${h}h ${m}m uptime`
+  if (m > 0) return `${m}m ${sec}s uptime`
+  return `${sec}s uptime`
+}
+
+function formatTime(ts) {
+  return new Date(ts).toLocaleTimeString('en-US', { hour12: false })
+}
+
+// ── Tab switching ────────────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('[id^=tab-]').forEach(el => el.style.display = 'none')
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'))
+  document.getElementById('tab-' + name).style.display = ''
+  btn.classList.add('active')
+  closeSidebar()
+  if (name === 'customcmds') loadCustomCommands()
+  if (name === 'schedules') loadSchedules(true)
+  if (name === 'groupsettings') {
+    loadFeatures()
+    loadGroups()
+    loadBanned()
+  }
+  if (name === 'settings') {
+    loadLogs()
+    loadSession()
+  } else {
+    stopQrPoll()
+  }
+}
+
+// ── Status ───────────────────────────────────────────────────────────────────
+async function loadStatus() {
+  try {
+    const data = await fetch('/api/status').then(r => r.json())
+    currentStatus = data
+
+    const connected = data.connected || data.qrStatus === 'connected'
+    const dot = document.getElementById('navDot')
+    const text = document.getElementById('navStatusText')
+    dot.className = 'dot' + (connected ? ' online' : '')
+    text.textContent = connected ? 'Connected' : 'Disconnected'
+
+    const badge = document.getElementById('statusBadge')
+    badge.className = 'status-badge' + (connected ? ' online' : '')
+
+    const pic = document.getElementById('profilePic')
+    const emoji = document.getElementById('avatarEmoji')
+    if (data.profilePic) {
+      pic.src = data.profilePic
+      pic.style.display = ''
+      emoji.style.display = 'none'
+    } else {
+      pic.style.display = 'none'
+      emoji.style.display = ''
+    }
+
+    document.getElementById('statusName').textContent = data.account?.name || data.botName || 'Ilussion Bot'
+    document.getElementById('statusNumber').textContent = data.account?.id?.split(':')[0] || 'Not connected'
+    document.getElementById('statusUptime').textContent = formatUptime(data.uptime)
+
+    const meta = document.getElementById('statusMeta')
+    meta.innerHTML = `
+      <span class="status-meta-item ${connected ? 'online' : 'offline'}">${connected ? '🟢 Online' : '🔴 Offline'}</span>
+      <span class="status-meta-item">• v${data.version}</span>
+      <span class="status-meta-item">• ${data.commandMode === 'public' ? '🌐 Public' : '🔒 Private'}</span>
+    `
+
+  } catch(e) {
+    document.getElementById('navStatusText').textContent = 'Error'
+  }
+}
+
+// ── Settings ─────────────────────────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const data = await fetch('/api/settings').then(r => r.json())
+    document.getElementById('botName').value = data.botName || ''
+    document.getElementById('botOwner').value = data.botOwner || ''
+    document.getElementById('ownerNumber').value = data.ownerNumber || ''
+    document.getElementById('commandMode').value = data.commandMode || 'public'
+    const tzSelect = document.getElementById('timeZone')
+    const currentTz = data.timeZone || 'Asia/Kuala_Lumpur'
+    if (![...tzSelect.options].some((opt) => opt.value === currentTz)) {
+      const customOpt = document.createElement('option')
+      customOpt.value = currentTz
+      customOpt.textContent = `${currentTz} (Current)`
+      tzSelect.appendChild(customOpt)
+    }
+    tzSelect.value = currentTz
+    document.getElementById('packname').value = data.packname || ''
+    document.getElementById('description').value = data.description || ''
+  } catch(e) {}
+}
+
+async function saveSettings() {
+  const payload = {
+    botName: document.getElementById('botName').value.trim(),
+    botOwner: document.getElementById('botOwner').value.trim(),
+    ownerNumber: document.getElementById('ownerNumber').value.trim(),
+    commandMode: document.getElementById('commandMode').value,
+    timeZone: document.getElementById('timeZone').value.trim(),
+    packname: document.getElementById('packname').value.trim(),
+    description: document.getElementById('description').value.trim(),
+  }
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(r => r.json())
+    if (res.success) {
+      showToast(res.message || 'Settings saved')
+      if (res.restarting) {
+        setTimeout(() => {
+          loadStatus()
+          loadSettings()
+        }, 2500)
+      }
+    }
+    else showToast(res.error || 'Failed to save', 'error')
+  } catch(e) {
+    showToast('Network error', 'error')
+  }
+}
+
+// ── Logs ─────────────────────────────────────────────────────────────────────
+async function loadLogs() {
+  try {
+    const logs = await fetch('/api/logs').then(r => r.json())
+    const container = document.getElementById('logContainer')
+    if (!logs.length) {
+      container.innerHTML = '<div class="log-empty">No logs yet...</div>'
+      return
+    }
+    container.innerHTML = logs.map(l => `
+      <div class="log-entry log-${l.level}">
+        <span class="log-time">${formatTime(l.time)}</span>
+        <span class="log-msg">${escapeHtml(l.msg)}</span>
+      </div>
+    `).join('')
+  } catch(e) {}
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+
+// ── Sidebar drawer ────────────────────────────────────────────────────────────
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open')
+  document.getElementById('sidebarOverlay').classList.add('active')
+  document.getElementById('menuFab').style.display = 'none'
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open')
+  document.getElementById('sidebarOverlay').classList.remove('active')
+  document.getElementById('menuFab').style.display = ''
+}
+
+// ── Groups ────────────────────────────────────────────────────────────────────
+async function loadGroups() {
+  const el = document.getElementById('groupsContent')
+  el.innerHTML = '<p style="color:var(--text-dim);font-size:13px">Loading...</p>'
+  try {
+    const groups = await fetch('/api/groups').then(r => r.json())
+    if (groups && groups.success === false) {
+      el.innerHTML = `<p style="color:var(--red);font-size:13px">${escapeHtml(groups.error || 'Failed to load groups')}</p>`
+      return
+    }
+    if (!groups || !groups.length) {
+      el.innerHTML = `
+        <div style="text-align:center;padding:32px 0;color:var(--text-dim)">
+          <div style="font-size:40px;margin-bottom:12px">👥</div>
+          <div style="font-size:14px;font-weight:500;color:var(--text)">No groups found</div>
+          <div style="font-size:13px;margin-top:6px">Connect the bot to WhatsApp to see joined groups here.</div>
+        </div>`
+      return
+    }
+    el.innerHTML = `
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">${groups.length} group${groups.length !== 1 ? 's' : ''} joined</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${groups.map(g => `
+          <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;border:1px solid var(--border)">
+            <div style="font-weight:600;font-size:14px;color:var(--text);margin-bottom:6px">👥 ${escapeHtml(g.name)}</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text-dim)">
+              <span>💬 ${g.messages} messages</span>
+              <span>👤 ${g.members} members</span>
+              <span>${g.admin ? '👑 Admin' : '👶 Member'}</span>
+            </div>
+          </div>`).join('')}
+      </div>`
+  } catch(e) {
+    el.innerHTML = '<p style="color:var(--red);font-size:13px">Failed to load groups.</p>'
+  }
+}
+
+// ── Schedules ────────────────────────────────────────────────────────────────
+let scheduleGroupCache = []
+
+function toggleScheduleDateField() {
+  const type = document.getElementById('scheduleType').value
+  document.getElementById('scheduleDateWrap').style.display = type === 'once' ? '' : 'none'
+}
+
+function formatDateTime(ts) {
+  if (!ts) return '-'
+  const d = new Date(ts)
+  if (Number.isNaN(d.getTime())) return '-'
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+}
+
+async function loadScheduleGroups() {
+  const sel = document.getElementById('scheduleChatId')
+  try {
+    const groups = await fetch('/api/groups').then(r => r.json())
+    scheduleGroupCache = Array.isArray(groups) ? groups : []
+    if (!scheduleGroupCache.length) {
+      sel.innerHTML = '<option value="">No groups available</option>'
+      return
+    }
+    sel.innerHTML = scheduleGroupCache.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)} (${escapeHtml(g.id)})</option>`).join('')
+  } catch (e) {
+    sel.innerHTML = '<option value="">Failed to load groups</option>'
+  }
+}
+
+async function loadSchedules(withGroups = false) {
+  if (withGroups) await loadScheduleGroups()
+  const el = document.getElementById('schedulesContent')
+  el.innerHTML = '<p style="color:var(--text-dim);font-size:13px">Loading...</p>'
+  try {
+    const schedules = await fetch('/api/schedules').then(r => r.json())
+    if (schedules && schedules.success === false) {
+      el.innerHTML = `<p style="color:var(--red);font-size:13px">${escapeHtml(schedules.error || 'Failed to load schedules')}</p>`
+      return
+    }
+    if (!Array.isArray(schedules) || !schedules.length) {
+      el.innerHTML = '<p style="color:var(--text-dim);font-size:13px">Belum ada scheduled chat.</p>'
+      return
+    }
+
+    const groupName = (chatId) => {
+      const found = scheduleGroupCache.find(g => g.id === chatId)
+      return found ? found.name : chatId
+    }
+
+    const grouped = schedules.reduce((acc, item) => {
+      const key = item.chatId || 'unknown'
+      if (!acc[key]) acc[key] = []
+      acc[key].push(item)
+      return acc
+    }, {})
+
+    const groupIds = Object.keys(grouped).sort((a, b) => {
+      const aFirst = grouped[a][0] ? Number(grouped[a][0].nextRunAt || 0) : Number.MAX_SAFE_INTEGER
+      const bFirst = grouped[b][0] ? Number(grouped[b][0].nextRunAt || 0) : Number.MAX_SAFE_INTEGER
+      return aFirst - bFirst
+    })
+
+    const renderRows = (list) => list.map(s => `
+      <tr class="list-row">
+        <td style="padding:10px">#${s.id}</td>
+        <td style="padding:10px">${s.type === 'daily' ? 'Daily' : 'Once'}</td>
+        <td style="padding:10px">${escapeHtml(s.nextRunText || formatDateTime(s.nextRunAt))}</td>
+        <td style="padding:10px;max-width:320px">${escapeHtml((s.message || '').slice(0, 80))}${(s.message || '').length > 80 ? '…' : ''}</td>
+        <td style="padding:10px;text-align:right;white-space:nowrap">
+          <button class="btn btn-outline btn-sm" style="margin-right:6px" onclick="editSchedule(${s.id})">✏️ Edit</button>
+          <button class="btn btn-sm" style="background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.4)" onclick="deleteScheduleItem(${s.id})">🗑️ Delete</button>
+        </td>
+      </tr>
+    `).join('')
+
+    el.innerHTML = groupIds.map(chatId => {
+      const rows = grouped[chatId] || []
+      return `
+        <div class="card list-frame" style="margin-bottom:14px;padding:0;overflow:hidden">
+          <div class="list-head">
+            <div style="font-weight:700">👥 ${escapeHtml(groupName(chatId))}</div>
+            <div style="font-size:12px;color:var(--text-dim)">${rows.length} schedule</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="list-table" style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr class="list-head-row">
+                  <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">ID</th>
+                  <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Type</th>
+                  <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Time</th>
+                  <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Message</th>
+                  <th style="text-align:right;padding:8px 10px;color:var(--text-dim)">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${renderRows(rows)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `
+    }).join('')
+  } catch (e) {
+    el.innerHTML = '<p style="color:var(--red);font-size:13px">Failed to load schedules.</p>'
+  }
+}
+
+async function addSchedule() {
+  const chatId = document.getElementById('scheduleChatId').value
+  const type = document.getElementById('scheduleType').value
+  const date = document.getElementById('scheduleDate').value
+  const time = document.getElementById('scheduleTime').value
+  const message = document.getElementById('scheduleMessage').value.trim()
+
+  if (!chatId) return showToast('Pilih chat/group dulu.', 'error')
+  if (!time) return showToast('Masa diperlukan.', 'error')
+  if (!message) return showToast('Mesej tak boleh kosong.', 'error')
+  if (type === 'once' && !date) return showToast('Tarikh diperlukan untuk once.', 'error')
+
+  const payload = { chatId, type, time, message }
+  if (type === 'once') payload.date = date
+
+  try {
+    const res = await fetch('/api/schedules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(r => r.json())
+
+    if (!res.success) return showToast(res.error || 'Gagal tambah schedule.', 'error')
+
+    showToast('Schedule berjaya ditambah.')
+    document.getElementById('scheduleMessage').value = ''
+    if (type === 'once') document.getElementById('scheduleDate').value = ''
+    document.getElementById('scheduleTime').value = ''
+    loadSchedules()
+  } catch (e) {
+    showToast('Network error', 'error')
+  }
+}
+
+async function editSchedule(id) {
+  try {
+    const schedules = await fetch('/api/schedules').then(r => r.json())
+    const item = Array.isArray(schedules) ? schedules.find(s => Number(s.id) === Number(id)) : null
+    if (!item) return showToast('Schedule tak dijumpai.', 'error')
+
+    const newMessage = prompt('Edit message:', item.message || '')
+    if (newMessage === null) return
+    const trimmedMessage = newMessage.trim()
+    if (!trimmedMessage) return showToast('Mesej tak boleh kosong.', 'error')
+
+    let payload = {
+      chatId: item.chatId,
+      type: item.type,
+      message: trimmedMessage,
+      time: item.time
+    }
+
+    if (item.type === 'once') {
+      const newDate = prompt('Edit date (YYYY-MM-DD):', item.date || '')
+      if (newDate === null) return
+      const newTime = prompt('Edit time (HH:MM):', item.time || '')
+      if (newTime === null) return
+      payload.date = (newDate || '').trim()
+      payload.time = (newTime || '').trim()
+    } else {
+      const newTime = prompt('Edit time (HH:MM):', item.time || '')
+      if (newTime === null) return
+      payload.time = (newTime || '').trim()
+    }
+
+    const res = await fetch('/api/schedules/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(r => r.json())
+
+    if (!res.success) return showToast(res.error || 'Gagal update schedule.', 'error')
+    showToast('Schedule berjaya dikemaskini.')
+    loadSchedules()
+  } catch (e) {
+    showToast('Network error', 'error')
+  }
+}
+
+async function deleteScheduleItem(id) {
+  if (!confirm(`Padam schedule #${id}?`)) return
+  try {
+    const res = await fetch('/api/schedules/' + id, { method: 'DELETE' }).then(r => r.json())
+    if (!res.success) return showToast(res.error || 'Gagal padam schedule.', 'error')
+    showToast('Schedule dipadam.')
+    loadSchedules()
+  } catch (e) {
+    showToast('Network error', 'error')
+  }
+}
+
+// ── Features ─────────────────────────────────────────────────────────────────
+async function loadFeatures() {
+  try {
+    const f = await fetch('/api/features').then(r => r.json())
+    const features = [
+      { key: 'autoStatus', label: 'Auto Status View', desc: 'Automatically view WhatsApp statuses' },
+      { key: 'autoRead', label: 'Auto Read', desc: 'Automatically mark messages as read' },
+      { key: 'autoTyping', label: 'Auto Typing', desc: 'Show typing indicator while processing' },
+      { key: 'antiDelete', label: 'Anti Delete', desc: 'Recover deleted messages in groups' },
+    ]
+    document.getElementById('featuresContent').innerHTML = features.map(feat => `
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div>${feat.label}</div>
+          <small style="color:var(--text-dim)">${feat.desc}</small>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-${feat.key}" ${f[feat.key] ? 'checked' : ''} onchange="toggleFeature('${feat.key}', this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+    `).join('')
+  } catch(e) {}
+}
+
+async function toggleFeature(key, enabled) {
+  const checkbox = document.getElementById('toggle-' + key)
+  if (checkbox) checkbox.disabled = true
+  try {
+    const res = await fetch('/api/features/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, enabled })
+    }).then(r => r.json())
+    if (!res.success) {
+      alert('Failed to toggle feature: ' + (res.error || 'Unknown error'))
+      if (checkbox) checkbox.checked = !enabled
+    }
+  } catch(e) {
+    alert('Error toggling feature.')
+    if (checkbox) checkbox.checked = !enabled
+  } finally {
+    if (checkbox) checkbox.disabled = false
+  }
+}
+
+// ── Banned ────────────────────────────────────────────────────────────────────
+async function loadBanned() {
+  try {
+    const list = await fetch('/api/banned').then(r => r.json())
+    const el = document.getElementById('bannedContent')
+    if (!list.length) {
+      el.innerHTML = '<p style="color:var(--text-dim);font-size:13px">No banned users. 🎉</p>'
+      return
+    }
+    el.innerHTML = `
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">${list.length} banned user${list.length !== 1 ? 's' : ''}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${list.map(n => `<span class="badge badge-red">🚫 ${n}</span>`).join('')}
+      </div>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:12px">Use <code style="background:var(--surface2);padding:1px 5px;border-radius:3px">.unban @user</code> in WhatsApp to remove bans.</p>
+    `
+  } catch(e) {}
+}
+
+// ── Session ───────────────────────────────────────────────────────────────────
+let qrPollTimer = null
+
+function fmtAge(ms) {
+  if (!ms) return '—'
+  const s = Math.floor((Date.now() - ms) / 1000)
+  if (s < 60) return `${s}s ago`
+  if (s < 3600) return `${Math.floor(s/60)}m ago`
+  if (s < 86400) return `${Math.floor(s/3600)}h ${Math.floor((s%3600)/60)}m ago`
+  return `${Math.floor(s/86400)}d ago`
+}
+
+function fmtUptime(s) {
+  s = Math.floor(s)
+  if (s < 60) return `${s}s`
+  if (s < 3600) return `${Math.floor(s/60)}m ${s%60}s`
+  return `${Math.floor(s/3600)}h ${Math.floor((s%3600)/60)}m`
+}
+
+function infoRow(label, value, valueColor) {
+  return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">${label}</span>
+    <span style="font-size:13px;font-weight:600;color:${valueColor||'var(--text)'}">${value}</span>
+  </div>`
+}
+
+async function loadSession() {
+  try {
+    const [qrData, status] = await Promise.all([
+      fetch('/api/session/qr').then(r => r.json()),
+      fetch('/api/status').then(r => r.json())
+    ])
+
+    // ── QR Panel ──────────────────────────────────────────────────────────────
+    const elConn    = document.getElementById('qrConnected')
+    const elWait    = document.getElementById('qrWaiting')
+    const elImgWrap = document.getElementById('qrImageWrap')
+    const elDef     = document.getElementById('qrDefault')
+
+    ;[elConn, elWait, elImgWrap, elDef].forEach(el => el.style.display = 'none')
+
+    if (qrData.status === 'connected' || status.connected) {
+      elConn.style.display = ''
+      stopQrPoll()
+      // Populate connected account box
+      const acct = document.getElementById('qrConnectedAccount')
+      if (status.account) {
+        const num = status.account.id?.split(':')[0] || ''
+        acct.innerHTML =
+          `<div><b>📱 ${status.account.name || 'Unknown'}</b></div>` +
+          `<div style="color:var(--text-dim)">+${num}</div>` +
+          `<div style="margin-top:4px;font-size:12px;color:var(--text-dim)">Uptime: ${fmtUptime(status.uptime)}</div>`
+      } else {
+        acct.innerHTML = `<span style="color:var(--text-dim);font-size:12px">Account info loading...</span>`
+      }
+    } else if (qrData.status === 'pending' && qrData.qr) {
+      elImgWrap.style.display = ''
+      document.getElementById('qrImage').src = qrData.qr
+      const age  = Math.floor((Date.now() - qrData.timestamp) / 1000)
+      const left = Math.max(0, 60 - age)
+      document.getElementById('qrExpiry').textContent = left > 0
+        ? `⏱ Expires in ~${left}s` : '⚠️ QR may have expired. Click Refresh.'
+      startQrPoll()
+    } else if (qrData.status === 'resetting') {
+      elWait.style.display = ''
+      startQrPoll()
+    } else {
+      elDef.style.display = ''
+      startQrPoll()
+    }
+
+    // ── Session Info Grid ─────────────────────────────────────────────────────
+    const grid = document.getElementById('sessionInfoGrid')
+    const connStatus = (status.connected || qrData.status === 'connected')
+    const statusBadge = connStatus
+      ? `<span style="color:var(--green)">● Connected</span>`
+      : `<span style="color:var(--red)">● Disconnected</span>`
+
+    const platformBadge = status.platform === 'Railway'
+      ? `<span style="color:#c792ea">🚂 Railway</span>`
+      : status.platform === 'Replit'
+        ? `<span style="color:#56b6c2">♟ Replit</span>`
+        : `<span style="color:var(--text-dim)">💻 Local</span>`
+
+    const sessionEnvBadge = status.hasSessionEnv
+      ? `<span style="color:var(--green)">✓ Set</span>`
+      : `<span style="color:var(--text-dim)">— Not set</span>`
+
+    let num = '—', name = '—'
+    if (status.account) {
+      num  = '+' + (status.account.id?.split(':')[0] || '—')
+      name = status.account.name || '—'
+    }
+
+    grid.innerHTML =
+      infoRow('Status', statusBadge) +
+      infoRow('Phone Number', num, 'var(--text)') +
+      infoRow('Account Name', name, 'var(--text)') +
+      infoRow('Platform', platformBadge) +
+      infoRow('SESSION_ID Env', sessionEnvBadge) +
+      infoRow('Session Updated', fmtAge(status.sessionMtime), 'var(--text-dim)') +
+      infoRow('Bot Uptime', fmtUptime(status.uptime), 'var(--text-dim)') +
+      `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0">
+        <span style="font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Version</span>
+        <span style="font-size:13px;font-weight:600;color:var(--text-dim)">v${status.version}</span>
+      </div>`
+
+  } catch(e) {
+    document.getElementById('sessionInfoGrid').innerHTML =
+      `<div style="font-size:13px;color:var(--red);padding:8px 0">⚠️ Failed to load session info</div>`
+  }
+}
+
+function startQrPoll() {
+  if (qrPollTimer) return
+  qrPollTimer = setInterval(loadSession, 4000)
+}
+
+function stopQrPoll() {
+  if (qrPollTimer) { clearInterval(qrPollTimer); qrPollTimer = null }
+}
+
+function confirmReset() {
+  document.getElementById('confirmModal').style.display = 'flex'
+}
+
+function closeModal() {
+  document.getElementById('confirmModal').style.display = 'none'
+}
+
+async function doReset() {
+  closeModal()
+  try {
+    const res = await fetch('/api/session/reset', { method: 'POST' }).then(r => r.json())
+    if (res.success) {
+      showToast('Session cleared. Waiting for QR...', 'success')
+      // Switch QR panel to waiting state immediately
+      document.getElementById('qrConnected').style.display = 'none'
+      document.getElementById('qrImageWrap').style.display = 'none'
+      document.getElementById('qrDefault').style.display = 'none'
+      document.getElementById('qrWaiting').style.display = ''
+      startQrPoll()
+    } else {
+      showToast(res.error || 'Reset failed', 'error')
+    }
+  } catch(e) {
+    showToast('Network error', 'error')
+  }
+}
+
+// ── Custom Commands ───────────────────────────────────────────────────────────
+function normalizeCcCategory(category) {
+  const raw = String(category || '').trim()
+  return raw || 'General'
+}
+
+function openCcGuideModal() {
+  document.getElementById('ccGuideModal').style.display = 'flex'
+}
+
+function closeCcGuideModal() {
+  document.getElementById('ccGuideModal').style.display = 'none'
+}
+
+async function loadCustomCommands() {
+  try {
+    const cmds = await fetch('/api/custom-commands').then(r => r.json())
+    window.ccCommandsCache = Array.isArray(cmds) ? cmds : []
+    window.ccRenderedCommands = []
+    const el = document.getElementById('ccList')
+    const stats = document.getElementById('ccStats')
+    stats.textContent = `${cmds.length} custom command${cmds.length !== 1 ? 's' : ''} saved`
+
+    if (!cmds.length) {
+      el.innerHTML = '<p style="color:var(--text-dim);font-size:13px;padding:8px 0">No custom commands yet. Add one above! 👆</p>'
+      return
+    }
+
+    const grouped = cmds.reduce((acc, cmd) => {
+      const key = normalizeCcCategory(cmd.category)
+      if (!acc[key]) acc[key] = []
+      acc[key].push(cmd)
+      return acc
+    }, {})
+    const categories = Object.keys(grouped).sort((a, b) => a.localeCompare(b))
+    el.innerHTML = categories.map((category) => {
+      const rows = grouped[category].map(c => {
+        const cmdIndex = window.ccRenderedCommands.push(c) - 1
+        const desc = c.description ? escapeHtml(c.description) : '<span style="color:var(--text-dim);font-style:italic">—</span>'
+        return `
+          <tr class="list-row">
+            <td style="padding:10px 12px;white-space:nowrap">
+              <code style="background:var(--surface2);padding:2px 8px;border-radius:4px;color:var(--green);font-size:12px">${escapeHtml(c.trigger)}</code>
+            </td>
+            <td style="padding:10px 12px;color:var(--text-dim)">${desc}</td>
+            <td style="padding:10px 12px;text-align:right;white-space:nowrap;position:relative">
+              <select class="input" style="min-width:130px;height:34px;padding:4px 8px" onchange="handleCcActionSelect(this, ${cmdIndex})">
+                <option value="">Select</option>
+                <option value="view">👁 View</option>
+                <option value="edit">✏️ Edit</option>
+                <option value="delete" class="action-select-delete">🗑 Delete</option>
+              </select>
+            </td>
+          </tr>`
+      }).join('')
+
+      return `
+        <div class="list-frame" style="margin-bottom:14px;overflow:hidden">
+          <div class="list-head">
+            <span style="font-size:13px;font-weight:700">📁 ${escapeHtml(category)}</span>
+            <span class="badge badge-yellow">${grouped[category].length} command${grouped[category].length !== 1 ? 's' : ''}</span>
+          </div>
+          <div style="overflow-x:auto;position:relative">
+            <table class="list-table" style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr class="list-head-row">
+                  <th style="text-align:left;padding:8px 12px;color:var(--text-dim);font-weight:600;white-space:nowrap">Trigger</th>
+                  <th style="text-align:left;padding:8px 12px;color:var(--text-dim);font-weight:600">Description</th>
+                  <th style="padding:8px 12px;color:var(--text-dim);font-weight:600;white-space:nowrap">Action</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>
+      `
+    }).join('')
+  } catch(e) {
+    document.getElementById('ccList').innerHTML = '<p style="color:var(--red);font-size:13px">Failed to load commands.</p>'
+  }
+}
+
+function handleCcActionSelect(selectEl, index) {
+  const action = (selectEl.value || '').toLowerCase()
+  if (!action) return
+
+  if (action === 'view') openCcViewModalByIndex(index)
+  else if (action === 'edit') openCcEditModalByIndex(index)
+  else if (action === 'delete') deleteCustomCommandByIndex(index)
+
+  selectEl.value = ''
+}
+
+function openCcViewModal(trigger, response, description, category, mediaUrl, mediaType, _fileName, buttons) {
+  document.getElementById('ccViewTriggerLabel').textContent = trigger || ''
+  document.getElementById('ccViewDescription').textContent = description || '—'
+  document.getElementById('ccViewCategory').textContent = category || 'General'
+  document.getElementById('ccViewMediaType').textContent = mediaType || 'text'
+  document.getElementById('ccViewMediaUrl').textContent = mediaUrl || '—'
+  document.getElementById('ccViewResponse').textContent = (response || '').replace(/\\n/g, '\n') || '—'
+  let parsedButtons = []
+  try {
+    parsedButtons = buttons ? JSON.parse(buttons) : []
+  } catch (_) {
+    parsedButtons = []
+  }
+  document.getElementById('ccViewButtons').textContent = String(Array.isArray(parsedButtons) ? parsedButtons.length : 0)
+  document.getElementById('ccViewModal').style.display = 'flex'
+}
+
+function getCcCommandByIndex(index) {
+  const list = Array.isArray(window.ccRenderedCommands) ? window.ccRenderedCommands : []
+  return list[index] || null
+}
+
+function openCcViewModalByIndex(index) {
+  const cmd = getCcCommandByIndex(index)
+  if (!cmd) return
+  openCcViewModal(
+    cmd.trigger || '',
+    cmd.response || '',
+    cmd.description || '',
+    cmd.category || 'General',
+    cmd.mediaUrl || '',
+    cmd.mediaType || '',
+    cmd.fileName || '',
+    JSON.stringify(cmd.buttons || [])
+  )
+}
+
+function openCcEditModalByIndex(index) {
+  const cmd = getCcCommandByIndex(index)
+  if (!cmd) return
+  openCcEditModal(
+    cmd.trigger || '',
+    cmd.response || '',
+    cmd.description || '',
+    cmd.category || 'General',
+    cmd.mediaUrl || '',
+    cmd.mediaType || '',
+    cmd.fileName || '',
+    JSON.stringify(cmd.buttons || [])
+  )
+}
+
+function deleteCustomCommandByIndex(index) {
+  const cmd = getCcCommandByIndex(index)
+  if (!cmd || !cmd.trigger) return
+  deleteCustomCommand(cmd.trigger)
+}
+
+function closeCcViewModal() {
+  document.getElementById('ccViewModal').style.display = 'none'
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, '\\x27').replace(/"/g, '\\x22')
+}
+
+// ── Media source helpers ───────────────────────────────────────────────────
+function toggleMediaFields() {
+  const type = document.getElementById('ccMediaType').value
+  const hasSelection = !!type
+  const isText = type === 'text'
+  const isUrl = type === 'url'
+  const hasMedia = hasSelection && !isText
+
+  document.getElementById('ccComposeFields').style.display = hasSelection ? '' : 'none'
+  document.getElementById('ccResponseWrap').style.display = hasSelection ? '' : 'none'
+  document.getElementById('ccButtonsWrap').style.display = hasSelection ? '' : 'none'
+  document.getElementById('ccCategoryWrap').style.display = hasSelection ? '' : 'none'
+  document.getElementById('ccDescriptionWrap').style.display = hasSelection ? '' : 'none'
+  document.getElementById('ccMediaSection').style.display = hasMedia ? '' : 'none'
+  document.getElementById('ccMediaUrlWrap').style.display = hasMedia ? '' : 'none'
+  document.getElementById('ccFileNameWrap').style.display = type === 'document' ? '' : 'none'
+
+  const responseLabel = document.getElementById('ccResponseLabel')
+  if (isText) {
+    responseLabel.textContent = 'Step 3: Respond'
+    document.getElementById('ccResponse').placeholder = 'Hello! Welcome to the group 👋'
+  } else if (hasMedia) {
+    responseLabel.textContent = 'Step 3: Caption (optional)'
+    document.getElementById('ccResponse').placeholder = type === 'url' ? 'Check this out 👇 (optional caption)' : 'Caption untuk media (optional)'
+  }
+
+  const srcToggle = document.getElementById('ccMediaSourceWrap')
+  if (srcToggle) srcToggle.style.display = isUrl ? 'none' : ''
+
+  if (!hasMedia) {
+    document.getElementById('ccMediaUrl').value = ''
+    document.getElementById('ccUploadedUrl').value = ''
+    document.getElementById('ccMediaFile').value = ''
+    document.getElementById('ccUploadProgress').style.display = 'none'
+    document.getElementById('ccDropText').style.display = ''
+    return
+  }
+
+  if (isUrl) {
+    document.getElementById('ccUrlInput').style.display = ''
+    document.getElementById('ccUploadInput').style.display = 'none'
+    document.getElementById('ccMediaUrl').placeholder = 'https://example.com/page'
+    document.getElementById('ccUploadedUrl').value = ''
+  } else {
+    const ph = { image: 'https://example.com/photo.jpg', video: 'https://example.com/video.mp4', audio: 'https://example.com/music.mp3', document: 'https://example.com/file.pdf' }
+    if (ph[type]) document.getElementById('ccMediaUrl').placeholder = ph[type]
+    if (document.getElementById('ccUploadInput').style.display !== '') {
+      setCcSource('upload')
+    }
+  }
+}
+
+function setCcSource(mode) {
+  if ((document.getElementById('ccMediaType').value || '') === 'url') return
+  const isUpload = mode === 'upload'
+  document.getElementById('ccUrlInput').style.display = isUpload ? 'none' : ''
+  document.getElementById('ccUploadInput').style.display = isUpload ? '' : 'none'
+  const onStyle = 'border:1px solid var(--green);background:var(--green);color:#000'
+  const offStyle = 'border:1px solid var(--border);background:transparent;color:var(--text-dim)'
+  document.getElementById('ccSrcUrlBtn').style.cssText = `flex:1;padding:7px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;${isUpload ? offStyle : onStyle}`
+  document.getElementById('ccSrcUploadBtn').style.cssText = `flex:1;padding:7px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;${isUpload ? onStyle : offStyle}`
+  if (!isUpload) document.getElementById('ccUploadedUrl').value = ''
+}
+
+function toggleEditMediaFields() {
+  const type = document.getElementById('ccEditMediaType').value
+  document.getElementById('ccEditMediaUrlWrap').style.display = type ? '' : 'none'
+  document.getElementById('ccEditFileNameWrap').style.display = type === 'document' ? '' : 'none'
+}
+
+function setCcEditSource(mode) {
+  const isUpload = mode === 'upload'
+  document.getElementById('ccEditUrlInput').style.display = isUpload ? 'none' : ''
+  document.getElementById('ccEditUploadInput').style.display = isUpload ? '' : 'none'
+  const onStyle = 'border:1px solid var(--green);background:var(--green);color:#000'
+  const offStyle = 'border:1px solid var(--border);background:transparent;color:var(--text-dim)'
+  document.getElementById('ccEditSrcUrlBtn').style.cssText = `flex:1;padding:7px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;${isUpload ? offStyle : onStyle}`
+  document.getElementById('ccEditSrcUploadBtn').style.cssText = `flex:1;padding:7px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;${isUpload ? onStyle : offStyle}`
+  if (!isUpload) document.getElementById('ccEditUploadedUrl').value = ''
+}
+
+// ── Upload helpers ─────────────────────────────────────────────────────────
+async function uploadMediaFile(file, barId, statusId, progressId, hiddenId, dropTextId) {
+  document.getElementById(progressId).style.display = ''
+  document.getElementById(dropTextId).style.display = 'none'
+  document.getElementById(statusId).textContent = `Uploading ${file.name}…`
+  document.getElementById(barId).style.width = '30%'
+  try {
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/upload-media', { method: 'POST', body: fd }).then(r => r.json())
+    if (res.success) {
+      document.getElementById(barId).style.width = '100%'
+      document.getElementById(statusId).textContent = `✅ ${res.originalName} uploaded`
+      document.getElementById(hiddenId).value = res.url
+      return res
+    } else {
+      document.getElementById(statusId).textContent = `❌ ${res.error}`
+      document.getElementById(barId).style.width = '0%'
+      return null
+    }
+  } catch (e) {
+    document.getElementById(statusId).textContent = '❌ Upload failed'
+    return null
+  }
+}
+
+function handleCcFileChange() {
+  const file = document.getElementById('ccMediaFile').files[0]
+  if (!file) return
+  uploadMediaFile(file, 'ccUploadBar', 'ccUploadStatus', 'ccUploadProgress', 'ccUploadedUrl', 'ccDropText')
+}
+
+function handleCcEditFileChange() {
+  const file = document.getElementById('ccEditMediaFile').files[0]
+  if (!file) return
+  uploadMediaFile(file, 'ccEditUploadBar', 'ccEditUploadStatus', 'ccEditUploadProgress', 'ccEditUploadedUrl', 'ccEditDropText')
+}
+
+function getButtonTypeMeta(type) {
+  switch (type) {
+    case 'url':
+      return {
+        targetLabel: 'URL',
+        placeholder: 'https://example.com',
+        extraLabel: '',
+        extraPlaceholder: '',
+        showTarget: true,
+        showExtra: false,
+        hint: 'Opens external link in WhatsApp.'
+      }
+    case 'call':
+      return {
+        targetLabel: 'Phone Number',
+        placeholder: '+628123456789',
+        extraLabel: '',
+        extraPlaceholder: '',
+        showTarget: true,
+        showExtra: false,
+        hint: 'Shows call action to a phone number.'
+      }
+    case 'whatsapp':
+      return {
+        targetLabel: 'WhatsApp Number',
+        placeholder: '628123456789',
+        extraLabel: '',
+        extraPlaceholder: '',
+        showTarget: true,
+        showExtra: false,
+        hint: 'Builds a WhatsApp link automatically.'
+      }
+    case 'copy':
+      return {
+        targetLabel: 'Copy Text / Link',
+        placeholder: 'https://github.com/atex-ovi',
+        extraLabel: '',
+        extraPlaceholder: '',
+        showTarget: true,
+        showExtra: false,
+        hint: 'Copies provided text/link to clipboard.'
+      }
+    case 'single_select':
+      return {
+        targetLabel: 'List Title',
+        placeholder: 'Select Option',
+        extraLabel: '',
+        extraPlaceholder: '',
+        showTarget: true,
+        showExtra: false,
+        hint: 'Creates WhatsApp list button with selectable rows.'
+      }
+    default:
+      return {
+        targetLabel: 'Button ID (optional)',
+        placeholder: '.menu',
+        extraLabel: '',
+        extraPlaceholder: '',
+        showTarget: true,
+        showExtra: false,
+        hint: 'Sends quick reply id back to bot.'
+      }
+  }
+}
+
+function buildRowsTextFromSections(sections = []) {
+  const lines = []
+  for (const section of sections) {
+    const rows = Array.isArray(section?.rows) ? section.rows : []
+    for (const row of rows) {
+      const id = row?.id || ''
+      const title = row?.title || ''
+      const desc = row?.description || ''
+      const header = row?.header || ''
+      if (!id && !title) continue
+      lines.push([id, title, desc, header].map((v) => String(v || '').replace(/\|/g, '/')).join('|'))
+    }
+  }
+  return lines.join('\n')
+}
+
+function parseSingleSelectRowsInput(raw) {
+  const lines = String(raw || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  const rows = []
+  for (const line of lines) {
+    const parts = line.split('|')
+    const id = (parts[0] || '').trim()
+    const title = (parts[1] || '').trim()
+    const description = (parts[2] || '').trim()
+    const header = (parts[3] || '').trim()
+
+    if (!id || !title) {
+      throw new Error('Single select rows must include id and title. Format: id|title|description|header')
+    }
+
+    rows.push({
+      id,
+      title,
+      ...(description ? { description } : {}),
+      ...(header ? { header } : {})
+    })
+  }
+
+  if (!rows.length) {
+    throw new Error('Single select button needs at least 1 row.')
+  }
+
+  return rows
+}
+
+function addCcButtonRow(containerId, button = {}) {
+  const container = document.getElementById(containerId)
+  if (!container) return
+
+  let parsed = {}
+  let type = 'quick_reply'
+  if (button && typeof button === 'object') {
+    if (button.quickReplyButton) {
+      type = 'quick_reply'
+      parsed = {
+        display_text: button.quickReplyButton.displayText || '',
+        id: button.quickReplyButton.id || ''
+      }
+    } else if (button.urlButton) {
+      const url = String(button.urlButton.url || '')
+      const waMatch = url.match(/^https?:\/\/wa\.me\/(\d+)/i)
+      type = waMatch ? 'whatsapp' : 'url'
+      parsed = {
+        display_text: button.urlButton.displayText || '',
+        url,
+        phone_number: waMatch ? waMatch[1] : ''
+      }
+    } else if (button.callButton) {
+      type = 'call'
+      parsed = {
+        display_text: button.callButton.displayText || '',
+        phone_number: button.callButton.phoneNumber || ''
+      }
+    } else if (button.buttonParamsJson) {
+      try {
+        parsed = JSON.parse(button.buttonParamsJson)
+        const rawName = String(button.name || 'quick_reply').toLowerCase()
+        if (rawName === 'cta_copy') type = 'copy'
+        else if (rawName === 'cta_call') type = 'call'
+        else if (rawName === 'cta_url') {
+          const url = String(parsed.url || parsed.merchant_url || '')
+          type = /^https?:\/\/wa\.me\//i.test(url) ? 'whatsapp' : 'url'
+        } else if (rawName === 'single_select') type = 'single_select'
+        else type = 'quick_reply'
+
+        if (rawName === 'single_select') {
+          parsed.rowsText = buildRowsTextFromSections(parsed.sections)
+        }
+      } catch (_) {
+        parsed = {}
+      }
+    } else {
+      parsed = button
+      type = button.name || parsed.type || 'quick_reply'
+    }
+  }
+
+  const meta = getButtonTypeMeta(type)
+  const currentTarget =
+    type === 'quick_reply' ? (parsed.id || parsed.buttonId || '') :
+    type === 'url' ? (parsed.url || parsed.link || '') :
+    type === 'whatsapp' ? (parsed.phone_number || parsed.phoneNumber || '') :
+    type === 'call' ? (parsed.phone_number || parsed.phoneNumber || '') :
+    type === 'copy' ? (parsed.copy_code || parsed.copyCode || '') :
+    type === 'single_select' ? (parsed.title || parsed.display_text || parsed.displayText || '') :
+    ''
+
+  const row = document.createElement('div')
+  row.className = 'cc-button-row'
+  row.innerHTML = `
+    <div style="display:grid;grid-template-columns:1.2fr .9fr 1.2fr auto;gap:8px;align-items:end">
+      <div class="form-group" style="margin:0">
+        <label>Button Name</label>
+        <input type="text" class="cc-button-label" placeholder="Click me" value="${escapeAttr(parsed.display_text || parsed.displayText || parsed.title || '')}" />
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Category</label>
+        <select class="cc-button-type" onchange="syncCcButtonRow(this)">
+          <option value="quick_reply">quick_reply</option>
+          <option value="url">cta_url</option>
+          <option value="call">cta_call</option>
+          <option value="copy">cta_copy</option>
+          <option value="single_select">single_select</option>
+          <option value="whatsapp">whatsapp shortcut</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="cc-button-target-label">${meta.targetLabel}</label>
+        <input type="text" class="cc-button-target" placeholder="${meta.placeholder}" value="${escapeAttr(currentTarget)}" />
+      </div>
+      <button type="button" class="btn btn-sm" style="background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.4);height:38px" onclick="removeCcButtonRow(this)">Remove</button>
+    </div>
+    <div class="form-group cc-button-extra" style="margin:0;display:none">
+      <label class="cc-button-extra-label"></label>
+      <textarea class="cc-button-extra-input" placeholder=""></textarea>
+    </div>
+    <div class="cc-select-builder" style="display:none">
+      <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px;letter-spacing:.03em">📋 LIST OPTIONS</div>
+      <div style="margin-bottom:8px">
+        <label style="font-size:12px">Section Title <span style="color:var(--text-dim)">(optional)</span></label>
+        <input type="text" class="cc-section-title" placeholder="Options" style="margin-top:4px;font-size:12px;padding:6px 8px" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1.5fr 1.5fr 28px;gap:6px;margin-bottom:4px">
+        <span style="font-size:11px;color:var(--text-dim);padding-left:2px">ID</span>
+        <span style="font-size:11px;color:var(--text-dim);padding-left:2px">Title <span style="color:var(--red)">*</span></span>
+        <span style="font-size:11px;color:var(--text-dim);padding-left:2px">Description</span>
+        <span></span>
+      </div>
+      <div class="cc-select-rows" style="display:flex;flex-direction:column;gap:4px"></div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="addCcSelectRow(this)" style="margin-top:8px;font-size:12px">+ Add Option</button>
+    </div>
+    <div class="cc-button-hint"></div>
+  `
+
+  container.appendChild(row)
+  const typeSelect = row.querySelector('.cc-button-type')
+  typeSelect.value = type
+
+  if (type === 'single_select' && parsed.sections) {
+    const section = parsed.sections[0] || {}
+    const sectionTitle = section.title || ''
+    row.querySelector('.cc-section-title').value = sectionTitle
+    const rows = Array.isArray(section.rows) ? section.rows : []
+    rows.forEach(r => addCcSelectRow(row.querySelector('.btn-outline.btn-sm[onclick]'), r))
+  }
+
+  syncCcButtonRow(typeSelect)
+}
+
+function removeCcButtonRow(buttonEl) {
+  const row = buttonEl.closest('.cc-button-row')
+  if (row) row.remove()
+}
+
+function syncCcButtonRow(selectEl) {
+  const row = selectEl.closest('.cc-button-row')
+  if (!row) return
+  const type = selectEl.value
+  const meta = getButtonTypeMeta(type)
+
+  const targetWrap = row.querySelector('.cc-button-target').closest('.form-group')
+  const targetLabel = row.querySelector('.cc-button-target-label')
+  const targetInput = row.querySelector('.cc-button-target')
+  targetLabel.textContent = meta.targetLabel
+  targetInput.placeholder = meta.placeholder
+  targetWrap.style.display = meta.showTarget ? '' : 'none'
+
+  const extraWrap = row.querySelector('.cc-button-extra')
+  const extraLabel = row.querySelector('.cc-button-extra-label')
+  const extraInput = row.querySelector('.cc-button-extra-input')
+  extraWrap.style.display = meta.showExtra ? '' : 'none'
+  extraLabel.textContent = meta.extraLabel
+  extraInput.placeholder = meta.extraPlaceholder
+
+  const selectBuilder = row.querySelector('.cc-select-builder')
+  if (selectBuilder) {
+    selectBuilder.style.display = type === 'single_select' ? '' : 'none'
+    if (type === 'single_select' && row.querySelectorAll('.cc-select-row').length === 0) {
+      addCcSelectRow(selectBuilder.querySelector('.btn-outline'))
+    }
+  }
+
+  row.querySelector('.cc-button-hint').textContent = meta.hint || ''
+}
+
+function addCcSelectRow(btnEl, prefill = {}) {
+  const builder = btnEl.closest('.cc-select-builder')
+  if (!builder) return
+  const container = builder.querySelector('.cc-select-rows')
+  const rowEl = document.createElement('div')
+  rowEl.className = 'cc-select-row'
+  const idVal = escapeAttr(prefill.id || '')
+  const titleVal = escapeAttr(prefill.title || '')
+  const descVal = escapeAttr(prefill.description || '')
+  rowEl.innerHTML = `
+    <input type="text" class="cc-sr-id" placeholder="option_1" value="${idVal}" title="ID (auto-filled if empty)" />
+    <input type="text" class="cc-sr-title" placeholder="Option title" value="${titleVal}" />
+    <input type="text" class="cc-sr-desc" placeholder="Description (optional)" value="${descVal}" />
+    <button type="button" title="Remove" onclick="this.closest('.cc-select-row').remove()" style="background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3);border-radius:6px;cursor:pointer;font-size:13px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;padding:0">✕</button>
+  `
+  container.appendChild(rowEl)
+}
+
+function collectCcSelectRows(row) {
+  const rows = []
+  row.querySelectorAll('.cc-select-row').forEach((el, idx) => {
+    const title = el.querySelector('.cc-sr-title').value.trim()
+    if (!title) return
+    const rawId = el.querySelector('.cc-sr-id').value.trim()
+    const id = rawId || title.toLowerCase().replace(/\s+/g, '_').replace(/[^\w-]/g, '') + '_' + (idx + 1)
+    const description = el.querySelector('.cc-sr-desc').value.trim()
+    rows.push({ id, title, ...(description ? { description } : {}) })
+  })
+  return rows
+}
+
+function resetCcButtonRows(containerId, buttons = []) {
+  const container = document.getElementById(containerId)
+  if (!container) return
+  container.innerHTML = ''
+  if (Array.isArray(buttons) && buttons.length) {
+    buttons.forEach((button) => addCcButtonRow(containerId, button))
+  }
+}
+
+function collectCcButtons(containerId) {
+  const container = document.getElementById(containerId)
+  if (!container) return []
+
+  const buttons = []
+  const rows = container.querySelectorAll('.cc-button-row')
+  for (const row of rows) {
+    const label = row.querySelector('.cc-button-label').value.trim()
+    const type = row.querySelector('.cc-button-type').value
+    const target = row.querySelector('.cc-button-target').value.trim()
+    const extra = row.querySelector('.cc-button-extra-input').value.trim()
+
+    if (!label && !target && !extra) continue
+    if (!label) throw new Error('Button name is required.')
+
+    const index = buttons.length + 1
+    if (type === 'quick_reply') {
+      buttons.push({
+        index,
+        name: 'quick_reply',
+        buttonParamsJson: JSON.stringify({
+          display_text: label,
+          id: target || label
+        })
+      })
+    } else if (type === 'url') {
+      if (!target) throw new Error('URL is required for cta_url button.')
+      buttons.push({
+        index,
+        name: 'cta_url',
+        buttonParamsJson: JSON.stringify({
+          display_text: label,
+          url: target,
+          merchant_url: target
+        })
+      })
+    } else if (type === 'call') {
+      if (!target) throw new Error('Phone number is required for cta_call button.')
+      buttons.push({
+        index,
+        name: 'cta_call',
+        buttonParamsJson: JSON.stringify({
+          display_text: label,
+          phone_number: target
+        })
+      })
+    } else if (type === 'copy') {
+      if (!target) throw new Error('Copy text/link is required for cta_copy button.')
+      buttons.push({
+        index,
+        name: 'cta_copy',
+        buttonParamsJson: JSON.stringify({
+          display_text: label,
+          copy_code: target
+        })
+      })
+    } else if (type === 'single_select') {
+      if (!target) throw new Error('List title is required for single_select button.')
+      const rowsData = collectCcSelectRows(row)
+      if (!rowsData.length) throw new Error('single_select button needs at least 1 option with a title.')
+      const sectionTitle = row.querySelector('.cc-section-title')?.value.trim() || 'Options'
+      buttons.push({
+        index,
+        name: 'single_select',
+        buttonParamsJson: JSON.stringify({
+          title: target,
+          sections: [
+            {
+              title: sectionTitle,
+              rows: rowsData
+            }
+          ]
+        })
+      })
+    } else if (type === 'whatsapp') {
+      const digits = String(target).replace(/\D/g, '')
+      if (!digits) throw new Error('WhatsApp number is required.')
+      const waUrl = `https://wa.me/${digits}`
+      buttons.push({
+        index,
+        name: 'cta_url',
+        buttonParamsJson: JSON.stringify({
+          display_text: label,
+          url: waUrl,
+          merchant_url: waUrl
+        })
+      })
+    }
+  }
+
+  return buttons
+}
+
+// ── Drag-and-drop setup (called after DOM ready) ───────────────────────────
+function initDropZones() {
+  ;[['ccDropZone', 'ccMediaFile', 'ccUploadBar', 'ccUploadStatus', 'ccUploadProgress', 'ccUploadedUrl', 'ccDropText'],
+    ['ccEditDropZone', 'ccEditMediaFile', 'ccEditUploadBar', 'ccEditUploadStatus', 'ccEditUploadProgress', 'ccEditUploadedUrl', 'ccEditDropText']
+  ].forEach(([zoneId, inputId, barId, statusId, progressId, hiddenId, dropTextId]) => {
+    const zone = document.getElementById(zoneId)
+    if (!zone) return
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--green)' })
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = 'var(--border)' })
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.style.borderColor = 'var(--border)'
+      const file = e.dataTransfer.files[0]
+      if (file) uploadMediaFile(file, barId, statusId, progressId, hiddenId, dropTextId)
+    })
+  })
+}
+document.addEventListener('DOMContentLoaded', initDropZones)
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme(getStoredTheme())
+  toggleMediaFields()
+})
+
+async function addCustomCommand() {
+  const trigger = document.getElementById('ccTrigger').value.trim()
+  const response = document.getElementById('ccResponse').value.trim()
+  const description = document.getElementById('ccDescription').value.trim()
+  const category = normalizeCcCategory(document.getElementById('ccCategory').value)
+  const mediaType = document.getElementById('ccMediaType').value
+  const normalizedMediaType = mediaType === 'text' ? '' : mediaType
+  const fileName = document.getElementById('ccFileName').value.trim()
+
+  if (!mediaType) { showToast('Please choose a media type first.', 'error'); return }
+  if (!trigger) { showToast('Trigger is required.', 'error'); return }
+
+  // Determine media URL: uploaded file takes precedence over URL input
+  const isUploadMode = document.getElementById('ccUploadInput').style.display !== 'none'
+  let mediaUrl = ''
+  if (normalizedMediaType) {
+    if (isUploadMode) {
+      mediaUrl = document.getElementById('ccUploadedUrl').value.trim()
+      if (!mediaUrl) {
+        // If file not yet uploaded but file is selected, upload now
+        const fileInput = document.getElementById('ccMediaFile')
+        if (fileInput.files[0]) {
+          const upRes = await uploadMediaFile(fileInput.files[0], 'ccUploadBar', 'ccUploadStatus', 'ccUploadProgress', 'ccUploadedUrl', 'ccDropText')
+          if (!upRes) { showToast('Upload failed. Please try again.', 'error'); return }
+          mediaUrl = upRes.url
+        } else {
+          showToast('Please select a file to upload, or switch to URL mode.', 'error'); return
+        }
+      }
+    } else {
+      mediaUrl = document.getElementById('ccMediaUrl').value.trim()
+    }
+  }
+
+  if (mediaType === 'text' && !response) { showToast('Respond is required for text type.', 'error'); return }
+  if (!response && !mediaUrl) { showToast('Add a response text or attach media / URL.', 'error'); return }
+  if (normalizedMediaType === 'url' && !mediaUrl) { showToast('Please enter a URL.', 'error'); return }
+
+  let buttons = []
+  try {
+    buttons = collectCcButtons('ccButtonsContainer')
+  } catch (err) {
+    showToast(err.message || 'Invalid button configuration.', 'error')
+    return
+  }
+
+  try {
+    const payload = { trigger, response, description, category }
+    if (normalizedMediaType && mediaUrl) { payload.mediaUrl = mediaUrl; payload.mediaType = normalizedMediaType }
+    if (normalizedMediaType === 'url' && mediaUrl) { payload.mediaUrl = mediaUrl; payload.mediaType = 'url' }
+    if (fileName) payload.fileName = fileName
+    if (buttons.length) payload.buttons = buttons
+
+    const res = await fetch('/api/custom-commands', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(r => r.json())
+
+    if (res.success) {
+      showToast(res.message)
+      ;['ccTrigger','ccResponse','ccDescription','ccMediaUrl','ccFileName','ccUploadedUrl'].forEach(id => { document.getElementById(id).value = '' })
+      document.getElementById('ccCategory').value = 'General'
+      document.getElementById('ccMediaType').value = ''
+      document.getElementById('ccMediaFile').value = ''
+      document.getElementById('ccUploadProgress').style.display = 'none'
+      document.getElementById('ccDropText').style.display = ''
+      resetCcButtonRows('ccButtonsContainer')
+      toggleMediaFields()
+      loadCustomCommands()
+    } else {
+      showToast(res.error || 'Failed to add command.', 'error')
+    }
+  } catch(e) { showToast('Network error', 'error') }
+}
+
+async function deleteCustomCommand(trigger) {
+  if (!confirm(`Delete command "${trigger}"?`)) return
+  try {
+    const res = await fetch('/api/custom-commands/' + encodeURIComponent(trigger), { method: 'DELETE' }).then(r => r.json())
+    if (res.success) { showToast(res.message); loadCustomCommands() }
+    else showToast(res.error || 'Failed to delete.', 'error')
+  } catch(e) { showToast('Network error', 'error') }
+}
+
+function openCcEditModal(trigger, response, description, category, mediaUrl, mediaType, fileName, buttons) {
+  document.getElementById('ccEditTrigger').value = trigger
+  document.getElementById('ccEditTriggerLabel').textContent = trigger
+  document.getElementById('ccEditResponse').value = (response || '').replace(/\\n/g, '\n')
+  document.getElementById('ccEditDescription').value = description || ''
+  let parsedButtons = []
+  try {
+    parsedButtons = buttons ? JSON.parse(buttons) : []
+  } catch (e) {
+    parsedButtons = []
+  }
+  resetCcButtonRows('ccEditButtonsContainer', parsedButtons)
+  const selectedCategory = normalizeCcCategory(category)
+  const categorySelect = document.getElementById('ccEditCategory')
+  if (![...categorySelect.options].some((opt) => opt.value === selectedCategory)) {
+    const customOpt = document.createElement('option')
+    customOpt.value = selectedCategory
+    customOpt.textContent = `${selectedCategory} (Current)`
+    categorySelect.appendChild(customOpt)
+  }
+  categorySelect.value = selectedCategory
+  document.getElementById('ccEditMediaType').value = mediaType || ''
+  document.getElementById('ccEditFileName').value = fileName || ''
+  // If existing media is a local upload, show it in the upload slot; else put it in URL
+  const isLocalUpload = (mediaUrl || '').startsWith('/uploads/')
+  document.getElementById('ccEditMediaUrl').value = isLocalUpload ? '' : (mediaUrl || '')
+  document.getElementById('ccEditUploadedUrl').value = isLocalUpload ? (mediaUrl || '') : ''
+  if (isLocalUpload && mediaUrl) {
+    document.getElementById('ccEditDropText').style.display = 'none'
+    document.getElementById('ccEditUploadProgress').style.display = ''
+    document.getElementById('ccEditUploadStatus').textContent = `✅ ${decodeURIComponent(mediaUrl.split('/').pop())} (uploaded)`
+    document.getElementById('ccEditUploadBar').style.width = '100%'
+  } else {
+    document.getElementById('ccEditDropText').style.display = ''
+    document.getElementById('ccEditUploadProgress').style.display = 'none'
+  }
+  toggleEditMediaFields()
+  if (mediaType) setCcEditSource(isLocalUpload ? 'upload' : 'url')
+  document.getElementById('ccEditModal').style.display = 'flex'
+}
+
+function closeCcEditModal() {
+  document.getElementById('ccEditModal').style.display = 'none'
+}
+
+async function saveEditCustomCommand() {
+  const trigger = document.getElementById('ccEditTrigger').value
+  const response = document.getElementById('ccEditResponse').value.trim()
+  const description = document.getElementById('ccEditDescription').value.trim()
+  const category = normalizeCcCategory(document.getElementById('ccEditCategory').value)
+  const mediaType = document.getElementById('ccEditMediaType').value
+  const fileName = document.getElementById('ccEditFileName').value.trim()
+
+  // Resolve media URL: uploaded or URL input
+  const isUploadMode = document.getElementById('ccEditUploadInput').style.display !== 'none'
+  let mediaUrl = ''
+  if (mediaType) {
+    if (isUploadMode) {
+      mediaUrl = document.getElementById('ccEditUploadedUrl').value.trim()
+      if (!mediaUrl) {
+        const fileInput = document.getElementById('ccEditMediaFile')
+        if (fileInput.files[0]) {
+          const upRes = await uploadMediaFile(fileInput.files[0], 'ccEditUploadBar', 'ccEditUploadStatus', 'ccEditUploadProgress', 'ccEditUploadedUrl', 'ccEditDropText')
+          if (!upRes) { showToast('Upload failed. Please try again.', 'error'); return }
+          mediaUrl = upRes.url
+        } else {
+          showToast('Please select a file to upload, or switch to URL mode.', 'error'); return
+        }
+      }
+    } else {
+      mediaUrl = document.getElementById('ccEditMediaUrl').value.trim()
+    }
+  }
+
+  if (!response && !mediaUrl) { showToast('Add a response text or attach media.', 'error'); return }
+
+  let buttons = []
+  try {
+    buttons = collectCcButtons('ccEditButtonsContainer')
+  } catch (err) {
+    showToast(err.message || 'Invalid button configuration.', 'error')
+    return
+  }
+
+  try {
+    const payload = { response, description, category }
+    if (mediaType && mediaUrl) { payload.mediaUrl = mediaUrl; payload.mediaType = mediaType }
+    if (fileName) payload.fileName = fileName
+    if (buttons.length) payload.buttons = buttons
+
+    const res = await fetch('/api/custom-commands/' + encodeURIComponent(trigger), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(r => r.json())
+
+    if (res.success) {
+      showToast(res.message)
+      closeCcEditModal()
+      loadCustomCommands()
+    } else {
+      showToast(res.error || 'Failed to update.', 'error')
+    }
+  } catch(e) { showToast('Network error', 'error') }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadStatus()
+loadSettings()
+loadLogs()
+loadSession()
+setInterval(loadStatus, 5000)
+</script>
+</body>
+</html>
