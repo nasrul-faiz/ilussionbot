@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const multer = require('multer')
 const moment = require('moment-timezone')
-const { isSuppressed } = require('./lib/logFilter')
+const { isSuppressed, sanitizeLogText } = require('./lib/logFilter')
 const {
     listAllSchedules,
     addDailySchedule,
@@ -46,8 +46,9 @@ const SUPPRESS_NOISY_SESSION_LOGS = process.env.SUPPRESS_NOISY_SESSION_LOGS !== 
 const LOG_FILE = path.join(__dirname, 'data', 'bot.log')
 
 function addLog(level, args) {
-    const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
-    if (isSuppressed(msg)) return
+    const raw = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
+    if (isSuppressed(raw)) return
+    const msg = sanitizeLogText(raw)
     const entry = { time: Date.now(), level, msg }
     global.dashboardLogs.push(entry)
     if (global.dashboardLogs.length > 200) global.dashboardLogs.shift()
@@ -81,6 +82,17 @@ console.warn = (...args) => {
 console.error = (...args) => {
     addLog('error', args)
     if (shouldPrintToTerminal(args)) originalError(...args)
+}
+
+process.stderr.write = function patchedStderrWrite(chunk, encoding, callback) {
+    const text = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk || '')
+    if (SUPPRESS_NOISY_SESSION_LOGS && isSuppressed(text)) {
+        if (typeof callback === 'function') callback()
+        return true
+    }
+
+    const sanitized = sanitizeLogText(text)
+    return originalStderrWrite(sanitized, encoding, callback)
 }
 
 // ── Helper: safe JSON read ──────────────────────────────────────────────────
