@@ -64,9 +64,19 @@ function shouldPrintToTerminal(args) {
     const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
     return !isSuppressed(msg)
 }
+const originalInfo = console.info
+const originalWarn = console.warn
 console.log = (...args) => {
     addLog('info', args)
     if (shouldPrintToTerminal(args)) originalLog(...args)
+}
+console.info = (...args) => {
+    addLog('info', args)
+    if (shouldPrintToTerminal(args)) originalInfo(...args)
+}
+console.warn = (...args) => {
+    addLog('warn', args)
+    if (shouldPrintToTerminal(args)) originalWarn(...args)
 }
 console.error = (...args) => {
     addLog('error', args)
