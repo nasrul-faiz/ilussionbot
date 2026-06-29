@@ -340,6 +340,7 @@ app.get('/api/settings', (req, res) => {
         menuMessage: settings.menuMessage,
         menuMediaUrl: settings.menuMediaUrl,
         menuButtons: settings.menuButtons,
+        commandReplyAsNormalMessage: settings.commandReplyAsNormalMessage !== false,
         version: settings.version,
     })
 })
@@ -352,6 +353,7 @@ app.post('/api/settings', (req, res) => {
             botOwner,
             ownerNumber,
             commandMode,
+            commandReplyAsNormalMessage,
             timeZone,
             packname,
             description,
@@ -377,6 +379,14 @@ app.post('/api/settings', (req, res) => {
             )
         }
 
+        const replaceBoolean = (key, value) => {
+            const normalized = !!value
+            content = content.replace(
+                new RegExp(`(${key}\\s*:\\s*)(true|false)`),
+                `$1${normalized}`
+            )
+        }
+
         if (timeZone !== undefined) {
             const tz = String(timeZone).trim()
             if (!moment.tz.zone(tz)) {
@@ -388,6 +398,7 @@ app.post('/api/settings', (req, res) => {
         if (botOwner !== undefined) replace('botOwner', botOwner)
         if (ownerNumber !== undefined) replace('ownerNumber', ownerNumber)
         if (commandMode !== undefined) replace('commandMode', commandMode)
+        if (commandReplyAsNormalMessage !== undefined) replaceBoolean('commandReplyAsNormalMessage', commandReplyAsNormalMessage)
         if (timeZone !== undefined) replace('timeZone', String(timeZone).trim())
         if (packname !== undefined) replace('packname', packname)
         if (description !== undefined) replace('description', description)

@@ -566,6 +566,19 @@ async function handleMessages(sock, messageUpdate, printLog) {
             return;
         }
 
+        // Tag command trigger message so socket layer can avoid quoted replies.
+        // This keeps command responses as normal messages instead of reply threads.
+        try {
+            Object.defineProperty(message, '__noReplyForCommand', {
+                value: true,
+                configurable: true,
+                enumerable: false,
+                writable: true,
+            });
+        } catch (_) {
+            message.__noReplyForCommand = true;
+        }
+
         // List of admin commands
         const adminCommands = ['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.kick', '.tagall', '.tagnotadmin', '.hidetag', '.antilink', '.antitag', '.setgdesc', '.setgname', '.setgpp'];
         const isAdminCommand = adminCommands.some(cmd => userMessage.startsWith(cmd));

@@ -6,6 +6,7 @@ const settings = {
   ownerNumber: '60162832841', //Set your number here without + symbol, just add country code & number without any space
   giphyApiKey: 'qnl7ssQChTdPjsKta2Ax2LMaGXz303tq',
   commandMode: 'public',
+  commandReplyAsNormalMessage: true,
   timeZone: 'Asia/Jakarta',
   maxStoreMessages: 20, 
   storeWriteInterval: 10000,

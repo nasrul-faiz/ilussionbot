@@ -163,6 +163,16 @@ async function startXeonBotInc() {
             keepAliveIntervalMs: 10000,
         })
 
+        const _rawSendMessage = XeonBotInc.sendMessage.bind(XeonBotInc)
+        XeonBotInc.sendMessage = (jid, content, options = {}) => {
+            const shouldSendCommandAsNormalMessage = settings.commandReplyAsNormalMessage !== false
+            if (shouldSendCommandAsNormalMessage && options && options.quoted && options.quoted.__noReplyForCommand) {
+                const { quoted, ...rest } = options
+                return _rawSendMessage(jid, content, rest)
+            }
+            return _rawSendMessage(jid, content, options)
+        }
+
         // Make current socket available to dashboard APIs running in the same process.
         global.botSocket = XeonBotInc
 
