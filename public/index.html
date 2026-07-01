@@ -294,6 +294,7 @@
       <button class="nav-item" onclick="showTab('groupsettings', this)" title="Group Setting"><span class="nav-emoji">👥</span> <span class="nav-label">Group Setting</span></button>
       <button class="nav-item" onclick="showTab('schedules', this)" title="Schedules"><span class="nav-emoji">⏰</span> <span class="nav-label">Schedules</span></button>
       <button class="nav-item" onclick="showTab('customcmds', this)" title="Custom Commands"><span class="nav-emoji">🤖</span> <span class="nav-label">Custom Commands</span></button>
+      <button class="nav-item" onclick="showTab('commandlist', this)" title="Command List"><span class="nav-emoji">📚</span> <span class="nav-label">Command List</span></button>
     </nav>
     <div class="side-status">
       <div class="dot" id="navDot"></div>
@@ -525,6 +526,20 @@
         <button class="btn btn-outline btn-sm" onclick="loadSchedules(true)">↻ Refresh</button>
       </div>
       <div id="schedulesContent"><p style="color:var(--text-dim);font-size:13px">Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- Command List Tab -->
+  <div id="tab-commandlist" style="display:none">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Command List
+        </span>
+        <button class="btn btn-outline btn-sm" onclick="loadCommandList()">↻ Refresh</button>
+      </div>
+      <div id="commandListContent"><p style="color:var(--text-dim);font-size:13px">Loading...</p></div>
     </div>
   </div>
 
@@ -848,6 +863,78 @@ function showTab(name, btn) {
     loadSession()
   } else {
     stopQrPoll()
+  }
+  if (name === 'commandlist') {
+    loadCommandList()
+  }
+}
+
+// ── Command List ─────────────────────────────────────────────────────────────
+async function loadCommandList() {
+  const el = document.getElementById('commandListContent')
+  if (!el) return
+  el.innerHTML = '<p style="color:var(--text-dim);font-size:13px">Loading...</p>'
+
+  try {
+    const data = await fetch('/api/command-list').then(r => r.json())
+    if (data && data.success === false) {
+      el.innerHTML = `<p style="color:var(--red);font-size:13px">${escapeHtml(data.error || 'Failed to load command list')}</p>`
+      return
+    }
+
+    const builtIn = Array.isArray(data.builtIn) ? data.builtIn : []
+    const custom = Array.isArray(data.custom) ? data.custom : []
+    const total = Number(data.total || builtIn.length + custom.length)
+
+    const renderRows = (rows) => rows.map((row) => `
+      <tr class="list-row">
+        <td style="padding:10px;font-weight:600">${escapeHtml(row.trigger || '')}</td>
+        <td style="padding:10px;color:var(--text-dim)">${escapeHtml(row.name || '')}</td>
+        <td style="padding:10px;color:var(--text-dim)">${escapeHtml(row.source || '')}</td>
+      </tr>
+    `).join('')
+
+    el.innerHTML = `
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Total commands: ${total}</p>
+      <div class="card list-frame" style="margin-bottom:14px;padding:0;overflow:hidden">
+        <div class="list-head">
+          <div style="font-weight:700">Built-in Commands</div>
+          <div style="font-size:12px;color:var(--text-dim)">${builtIn.length} items</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="list-table" style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr class="list-head-row">
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Trigger</th>
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Name</th>
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Source</th>
+              </tr>
+            </thead>
+            <tbody>${renderRows(builtIn)}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card list-frame" style="padding:0;overflow:hidden">
+        <div class="list-head">
+          <div style="font-weight:700">Custom Commands</div>
+          <div style="font-size:12px;color:var(--text-dim)">${custom.length} items</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="list-table" style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr class="list-head-row">
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Trigger</th>
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Description</th>
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Source</th>
+              </tr>
+            </thead>
+            <tbody>${custom.length ? renderRows(custom) : '<tr class="list-row"><td colspan="3" style="padding:10px;color:var(--text-dim)">No custom commands yet.</td></tr>'}</tbody>
+          </table>
+        </div>
+      </div>
+    `
+  } catch (e) {
+    el.innerHTML = '<p style="color:var(--red);font-size:13px">Failed to load command list.</p>'
   }
 }
 

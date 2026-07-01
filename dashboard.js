@@ -98,7 +98,10 @@ process.stderr.write = function patchedStderrWrite(chunk, encoding, callback) {
 // ── Helper: safe JSON read ──────────────────────────────────────────────────
 function readJSON(filePath, fallback = null) {
     try {
-        return JSON.parse(fs.readFileSync(filePath, 'utf8'))
+        const resolvedPath = path.isAbsolute(filePath)
+            ? filePath
+            : path.join(__dirname, filePath)
+        return JSON.parse(fs.readFileSync(resolvedPath, 'utf8'))
     } catch {
         return fallback
     }
@@ -192,10 +195,27 @@ function getGroupNamesFromStore() {
             }
         } else if (chats && typeof chats === 'object') {
             for (const [id, data] of Object.entries(chats)) {
-                if (!id.endsWith('@g.us')) continue
-                const subject = (data && (data.subject || data.name || data.groupName) || '').toString().trim()
-                if (subject) map.set(id, subject)
+                if (id.endsWith('@g.us')) {
+                    const subject = (data && (data.subject || data.name || data.groupName) || '').toString().trim()
+                    if (subject) map.set(id, subject)
+                }
+
+                if (data && typeof data === 'object') {
+                    const itemId = String(data.id || data.jid || '').trim()
+                    if (!itemId.endsWith('@g.us')) continue
+                    const itemSubject = (data.subject || data.name || data.groupName || '').toString().trim()
+                    if (itemSubject) map.set(itemId, itemSubject)
+                }
             }
+        }
+
+        const groupMeta = store && store.groupMetadata && typeof store.groupMetadata === 'object'
+            ? store.groupMetadata
+            : {}
+        for (const [id, data] of Object.entries(groupMeta)) {
+            if (!String(id).endsWith('@g.us')) continue
+            const subject = (data && (data.subject || data.name || data.groupName) || '').toString().trim()
+            if (subject) map.set(String(id), subject)
         }
     } catch (_) {}
     return map
@@ -213,9 +233,21 @@ function getGroupIdsFromStore() {
                 if (id.endsWith('@g.us')) ids.add(id)
             }
         } else if (chats && typeof chats === 'object') {
-            for (const id of Object.keys(chats)) {
+            for (const [id, data] of Object.entries(chats)) {
                 if (String(id).endsWith('@g.us')) ids.add(String(id))
+
+                if (data && typeof data === 'object') {
+                    const itemId = String(data.id || data.jid || '').trim()
+                    if (itemId.endsWith('@g.us')) ids.add(itemId)
+                }
             }
+        }
+
+        const groupMeta = store && store.groupMetadata && typeof store.groupMetadata === 'object'
+            ? store.groupMetadata
+            : {}
+        for (const id of Object.keys(groupMeta)) {
+            if (String(id).endsWith('@g.us')) ids.add(String(id))
         }
 
         const messages = store && store.messages && typeof store.messages === 'object' ? store.messages : {}
@@ -242,6 +274,54 @@ function getGroupIdsFromMessageCount(messageCount) {
     }
 
     return ids
+}
+
+const groupNameCache = new Map()
+const GROUP_NAME_CACHE_TTL_MS = 2 * 60 * 1000
+
+async function getGroupNameFromSocket(chatId) {
+    if (!chatId || !chatId.endsWith('@g.us')) return null
+
+    const now = Date.now()
+    const cached = groupNameCache.get(chatId)
+    if (cached && now - cached.fetchedAt < GROUP_NAME_CACHE_TTL_MS) return cached.name
+
+    const sock = global.botSocket
+    if (!sock || typeof sock.groupMetadata !== 'function') return null
+
+    try {
+        const metadata = await sock.groupMetadata(chatId)
+        const name = String(metadata?.subject || '').trim()
+        if (name) {
+            groupNameCache.set(chatId, { name, fetchedAt: now })
+            return name
+        }
+    } catch (_) {}
+
+    return null
+}
+
+async function getAllGroupNamesFromSocket() {
+    const map = new Map()
+    const sock = global.botSocket
+    if (!sock || typeof sock.groupFetchAllParticipating !== 'function') return map
+
+    try {
+        const all = await sock.groupFetchAllParticipating()
+        if (!all || typeof all !== 'object') return map
+
+        const now = Date.now()
+        for (const [id, data] of Object.entries(all)) {
+            const jid = String(id || '').trim()
+            if (!jid.endsWith('@g.us')) continue
+            const name = String(data?.subject || data?.name || '').trim()
+            if (!name) continue
+            map.set(jid, name)
+            groupNameCache.set(jid, { name, fetchedAt: now })
+        }
+    } catch (_) {}
+
+    return map
 }
 
 // ── API: Bot status ─────────────────────────────────────────────────────────
@@ -510,6 +590,48 @@ app.post('/api/upload-media', upload.single('file'), (req, res) => {
     }
 })
 
+// ── API: Command List (built-in + custom) ───────────────────────────────────
+app.get('/api/command-list', (req, res) => {
+    try {
+        const commandsDir = path.join(__dirname, 'commands')
+        let builtIn = []
+
+        if (fs.existsSync(commandsDir)) {
+            builtIn = fs.readdirSync(commandsDir)
+                .filter((name) => name.endsWith('.js'))
+                .map((name) => {
+                    const base = name.replace(/\.js$/i, '')
+                    return {
+                        trigger: `.${base.toLowerCase()}`,
+                        name: base,
+                        source: name,
+                        type: 'built-in',
+                    }
+                })
+                .sort((a, b) => a.trigger.localeCompare(b.trigger))
+        }
+
+        const customCommands = readJSON('./data/customCommands.json', [])
+        const custom = (Array.isArray(customCommands) ? customCommands : [])
+            .map((item) => ({
+                trigger: String(item?.trigger || '').trim().toLowerCase(),
+                name: String(item?.description || '').trim() || 'Custom command',
+                source: 'customCommands.json',
+                type: 'custom',
+            }))
+            .filter((item) => item.trigger)
+            .sort((a, b) => a.trigger.localeCompare(b.trigger))
+
+        res.json({
+            builtIn,
+            custom,
+            total: builtIn.length + custom.length,
+        })
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message })
+    }
+})
+
 // ── API: Custom Commands GET ─────────────────────────────────────────────────
 app.get('/api/custom-commands', (req, res) => {
     const cmds = readJSON('./data/customCommands.json', [])
@@ -716,12 +838,18 @@ app.post('/api/premium-users', (req, res) => {
 })
 
 // ── API: Groups Info ────────────────────────────────────────────────────────────
-app.get('/api/groups', (req, res) => {
+app.get('/api/groups', async (req, res) => {
     try {
         const userGroupData = readJSON('./data/userGroupData.json', {})
         const messageCount = readJSON('./data/messageCount.json', {})
         const storeGroupNames = getGroupNamesFromStore()
         const storeGroupIds = getGroupIdsFromStore()
+        const liveGroupNames = await getAllGroupNamesFromSocket()
+
+        for (const [id, name] of liveGroupNames.entries()) {
+            storeGroupNames.set(id, name)
+            storeGroupIds.add(id)
+        }
 
         const map = new Map()
 
@@ -795,7 +923,23 @@ app.get('/api/groups', (req, res) => {
             }
         }
 
-        const groups = Array.from(map.values()).sort((a, b) => b.messages - a.messages)
+        let groups = Array.from(map.values()).sort((a, b) => b.messages - a.messages)
+
+        const unknownGroups = groups.filter((g) => !g.name || g.name === 'Unknown')
+        if (unknownGroups.length) {
+            const resolved = await Promise.all(
+                unknownGroups.map(async (g) => ({ id: g.id, name: await getGroupNameFromSocket(g.id) }))
+            )
+            const resolvedMap = new Map(
+                resolved.filter((x) => x && x.name).map((x) => [x.id, x.name])
+            )
+            if (resolvedMap.size) {
+                groups = groups.map((g) => ({
+                    ...g,
+                    name: resolvedMap.get(g.id) || g.name,
+                }))
+            }
+        }
         
         res.json(groups)
     } catch (err) {
