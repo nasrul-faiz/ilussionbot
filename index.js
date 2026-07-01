@@ -50,7 +50,6 @@ const { rmSync, existsSync } = require('fs')
 const { join } = require('path')
 const QRCode = require('qrcode')
 const { startScheduler } = require('./lib/scheduler')
-const { clearSensitiveData } = require('./lib/privacyCleanup')
 
 // Import lightweight store
 const store = require('./lib/lightweight_store')
@@ -378,18 +377,7 @@ async function startXeonBotInc() {
         if (connection === 'close') {
             const statusCode = lastDisconnect?.error?.output?.statusCode
             console.log(chalk.red(`Connection closed due to ${lastDisconnect?.error}, status: ${statusCode}`))
-            try {
-                const cleaned = clearSensitiveData({ wipeSession: true, clearLogs: true })
-                const stepText = Array.isArray(cleaned?.steps) && cleaned.steps.length
-                    ? cleaned.steps.join(', ')
-                    : 'done'
-                console.log(chalk.yellow(`🧼 Privacy cleanup on disconnect: ${stepText}`))
-                if (!cleaned?.ok && Array.isArray(cleaned?.errors) && cleaned.errors.length) {
-                    console.error(`Privacy cleanup issues: ${cleaned.errors.join(' | ')}`)
-                }
-            } catch (e) {
-                console.error('Privacy cleanup failed:', e.message)
-            }
+            try { fs.writeFileSync('./data/qrState.json', JSON.stringify({ status: 'disconnected', timestamp: Date.now() })) } catch {}
             global.botSocket = null
 
             // Conflict (409/440) = same session active elsewhere (WhatsApp Web, other bot instance, etc.)
