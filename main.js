@@ -146,6 +146,7 @@ const settingsCommand = require('./commands/settings');
 const setTimezoneCommand = require('./commands/settimezone');
 const soraCommand = require('./commands/sora');
 const scheduleCommand = require('./commands/schedule');
+const singleSelectCommand = require('./commands/singleselect');
 const { sendInteractiveButtons, extractInteractiveResponseId } = require('./lib/interactiveButtons');
 
 // Global settings
@@ -681,6 +682,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 break;
             case userMessage === '.help' || userMessage === '.menu' || userMessage === '.bot' || userMessage === '.list':
                 await helpCommand(sock, chatId, message, global.channelLink);
+                commandExecuted = true;
+                break;
+            case userMessage === '.singleselect':
+                await singleSelectCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
             case userMessage === '.sticker' || userMessage === '.s':
