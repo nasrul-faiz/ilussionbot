@@ -11,6 +11,7 @@ const DL_OPT = {
     responseType: 'arraybuffer',
     headers: { 'User-Agent': UA, 'Accept': '*/*', 'Accept-Encoding': 'identity' }
 };
+const MAX_DURATION_SECONDS = 45 * 60;
 
 /* ── Helpers ── */
 async function retry(fn, times = 2) {
@@ -22,8 +23,54 @@ async function retry(fn, times = 2) {
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+function getMessageText(message) {
+    return message.message?.conversation
+        || message.message?.extendedTextMessage?.text
+        || message.message?.imageMessage?.caption
+        || message.message?.videoMessage?.caption
+        || message.message?.documentMessage?.caption
+        || '';
+}
+
 function isYtUrl(text) {
     return /(?:youtu\.be\/|youtube\.com\/(?:watch|shorts|embed|v\/))/i.test(text);
+}
+
+function isPlaylistUrl(text) {
+    return /[?&]list=/i.test(text);
+}
+
+function parseDurationSeconds(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value !== 'string' || !value.trim()) return 0;
+
+    const parts = value.split(':').map(part => Number(part));
+    if (parts.some(part => Number.isNaN(part))) return 0;
+
+    return parts.reduce((total, part) => (total * 60) + part, 0);
+}
+
+function sanitizeTitle(value, fallback) {
+    const cleaned = String(value || fallback || 'audio').replace(/[\r\n]+/g, ' ').replace(/[*_~`]/g, '').trim();
+    return cleaned || fallback || 'audio';
+}
+
+function pickVideoCandidate(videos = []) {
+    return videos.find(video => {
+        if (!video || video.live) return false;
+        const seconds = Number(video.seconds) || parseDurationSeconds(video.timestamp);
+        return !seconds || seconds <= MAX_DURATION_SECONDS;
+    }) || null;
+}
+
+function validateVideoSelection(video) {
+    if (!video) throw new Error('Unable to resolve that YouTube video.');
+    if (video.live) throw new Error('Live streams are not supported for MP3 downloads.');
+
+    const seconds = Number(video.seconds) || parseDurationSeconds(video.timestamp);
+    if (seconds > MAX_DURATION_SECONDS) {
+        throw new Error('Video is too long. Please choose one under 45 minutes.');
+    }
 }
 
 /* ── Download-URL providers ── */
@@ -141,10 +188,7 @@ async function ensureMp3(buf, ext) {
 /* ── Main command ── */
 async function ytmp3Command(sock, chatId, message) {
     try {
-        const body = message.message?.conversation
-            || message.message?.extendedTextMessage?.text
-            || message.message?.imageMessage?.caption
-            || '';
+        const body = getMessageText(message);
         const args = body.replace(/^\.\w+\s*/i, '').trim();
 
         if (!args) {
@@ -163,34 +207,51 @@ async function ytmp3Command(sock, chatId, message) {
             }, { quoted: message });
         }
 
+        if (isPlaylistUrl(args)) {
+            return await sock.sendMessage(chatId, {
+                text: '❌ Playlist links are not supported. Send a single YouTube video URL or search term.'
+            }, { quoted: message });
+        }
+
         /* ── Search / resolve video info ── */
-        let videoUrl, videoTitle, videoThumb, videoDuration;
+        let videoUrl, videoTitle, videoThumb, videoDuration, videoSeconds;
 
         if (isYtUrl(args)) {
             videoUrl = args;
             // fetch basic info via yts
             try {
                 const info = await yts({ videoId: extractId(args) });
+                validateVideoSelection(info);
                 videoTitle = info.title || 'Unknown';
                 videoThumb = info.thumbnail;
                 videoDuration = info.timestamp;
-            } catch (_) {
+                videoSeconds = Number(info.seconds) || parseDurationSeconds(info.timestamp);
+            } catch (err) {
+                if (err.message.includes('too long') || err.message.includes('Live streams')) throw err;
                 videoTitle = 'Unknown';
             }
         } else {
             const search = await yts(args);
-            if (!search?.videos?.length) {
+            const top = pickVideoCandidate(search?.videos || []);
+            if (!top) {
                 return await sock.sendMessage(chatId, { text: '❌ No results found. Try a different keyword.' }, { quoted: message });
             }
-            const top = search.videos[0];
+            validateVideoSelection(top);
             videoUrl = top.url;
             videoTitle = top.title;
             videoThumb = top.thumbnail;
             videoDuration = top.timestamp;
+            videoSeconds = Number(top.seconds) || parseDurationSeconds(top.timestamp);
+        }
+
+        if (videoSeconds > MAX_DURATION_SECONDS) {
+            return await sock.sendMessage(chatId, {
+                text: '❌ Video is too long. Please choose one under 45 minutes.'
+            }, { quoted: message });
         }
 
         /* ── Notify user ── */
-        const cleanTitle = videoTitle.replace(/[*_~`]/g, '');
+        const cleanTitle = sanitizeTitle(videoTitle, 'Unknown');
         const waitMsg = [
             `🎵 *${cleanTitle}*`,
             videoDuration ? `⏱ ${videoDuration}` : '',
@@ -241,7 +302,7 @@ async function ytmp3Command(sock, chatId, message) {
             finalBuffer = audioBuffer;
         }
 
-        const safeName = videoTitle.replace(/[^\w\s\-()]/g, '').trim() || 'audio';
+        const safeName = sanitizeTitle(videoTitle, 'audio').replace(/[^\w\s\-()]/g, '').trim() || 'audio';
 
         await sock.sendMessage(chatId, {
             audio: finalBuffer,
