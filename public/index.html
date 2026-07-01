@@ -28,6 +28,16 @@
     --list-head-border: rgba(82, 82, 91, .55);
     --list-header-bg: rgba(39, 39, 42, .72);
     --list-card-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    --cc-shell-bg: linear-gradient(135deg, rgba(34,197,94,.22), rgba(59,130,246,.14));
+    --cc-panel-tint: rgba(255,255,255,.03);
+    --cc-panel-shadow: 0 10px 24px rgba(0,0,0,.18);
+    --cc-composer-border: var(--border);
+    --cc-composer-bg: var(--surface2);
+    --cc-help-border: rgba(255,255,255,.10);
+    --cc-help-bg: rgba(255,255,255,.03);
+    --cc-button-row-border: rgba(255,255,255,.08);
+    --cc-button-row-bg: rgba(0,0,0,.18);
+    --cc-type-btn-active-bg: rgba(34,197,94,.16);
     --radius: 8px;
   }
   body[data-theme='light'] {
@@ -49,6 +59,16 @@
     --list-head-border: rgba(148, 163, 184, .52);
     --list-header-bg: rgba(241, 245, 249, .95);
     --list-card-shadow: 0 6px 20px rgba(15, 23, 42, .08);
+    --cc-shell-bg: linear-gradient(135deg, rgba(22,163,74,.18), rgba(37,99,235,.12));
+    --cc-panel-tint: rgba(255,255,255,.60);
+    --cc-panel-shadow: 0 8px 20px rgba(15,23,42,.09);
+    --cc-composer-border: var(--border);
+    --cc-composer-bg: var(--surface2);
+    --cc-help-border: rgba(15,23,42,.10);
+    --cc-help-bg: rgba(148,163,184,.14);
+    --cc-button-row-border: rgba(15,23,42,.14);
+    --cc-button-row-bg: rgba(148,163,184,.12);
+    --cc-type-btn-active-bg: rgba(22,163,74,.16);
   }
   body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; font-size: 14px; -webkit-font-smoothing: antialiased; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
@@ -70,7 +90,7 @@
   .dot.online { background: var(--green); animation: pulse 2s infinite; }
   .main { flex: 1; min-width: 0; overflow-x: hidden; width: 100%; }
   /* FAB to open sidebar */
-  .menu-fab { position: fixed; top: 16px; left: 16px; z-index: 100; width: 40px; height: 40px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, border-color .15s; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+  .menu-fab { position: fixed; top: 16px; left: 16px; right: auto; z-index: 100; width: 40px; height: 40px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, border-color .15s; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
   .menu-fab:hover { background: var(--surface2); border-color: var(--green); }
   .menu-fab svg { width: 22px; height: 22px; color: var(--green); }
 
@@ -158,46 +178,105 @@
   .toast.error { border-color: var(--red); }
 
   /* Custom command polish */
-  .cc-grid { gap: 18px; }
+  .cc-grid {
+    grid-template-columns: minmax(0, 1.7fr) minmax(260px, .85fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .cc-shell {
+    padding: 2px;
+    border-radius: 14px;
+    background: var(--cc-shell-bg);
+    margin-bottom: 16px;
+  }
   .cc-panel {
     background:
-      radial-gradient(120% 120% at 110% -20%, rgba(34,197,94,.12), transparent 52%),
-      radial-gradient(120% 120% at -10% -30%, rgba(59,130,246,.10), transparent 45%),
+      linear-gradient(180deg, var(--cc-panel-tint), transparent 30%),
       var(--surface);
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--cc-panel-shadow);
+  }
+  .cc-panel-main {
+    padding: 18px;
+  }
+  .cc-panel-aside {
+    position: sticky;
+    top: 18px;
+    padding: 16px;
+  }
+  .cc-composer {
+    border: 1px dashed var(--cc-composer-border);
+    border-radius: 12px;
+    padding: 14px;
+    background: var(--cc-composer-bg);
+    margin-bottom: 16px;
+  }
+  .cc-composer-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 12px;
+  }
+  .cc-inline-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .cc-type-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .cc-type-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .cc-type-btn.active {
+    border-color: var(--green);
+    background: var(--cc-type-btn-active-bg);
+    color: var(--text);
+  }
+  .cc-main-title {
+    margin-bottom: 10px;
+  }
+  .cc-note {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .cc-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cc-aside .btn {
+    width: 100%;
   }
   .cc-help {
-    border: 1px dashed rgba(255,255,255,.16);
+    border: 1px solid var(--cc-help-border);
     border-radius: 10px;
-    padding: 10px 12px;
-    background: rgba(255,255,255,.02);
+    padding: 12px;
+    background: var(--cc-help-bg);
     font-size: 12px;
     color: var(--text-dim);
     line-height: 1.6;
   }
   .cc-button-row {
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid var(--cc-button-row-border);
     border-radius: 10px;
     padding: 10px;
-    background: rgba(0,0,0,.18);
-  }
-  body[data-theme='light'] .cc-panel {
-    background:
-      radial-gradient(120% 120% at 110% -20%, rgba(22,163,74,.12), transparent 52%),
-      radial-gradient(120% 120% at -10% -30%, rgba(37,99,235,.08), transparent 45%),
-      var(--surface);
-    border: 1px solid rgba(15,23,42,.08);
-    box-shadow: 0 8px 26px rgba(15,23,42,.08);
-  }
-  body[data-theme='light'] .cc-help {
-    border: 1px dashed rgba(15,23,42,.16);
-    background: rgba(148,163,184,.10);
-  }
-  body[data-theme='light'] .cc-button-row {
-    border: 1px solid rgba(15,23,42,.14);
-    background: rgba(148,163,184,.12);
+    background: var(--cc-button-row-bg);
   }
   .cc-button-extra { margin-top: 8px; }
   .cc-button-hint { font-size: 11px; color: var(--text-dim); margin-top: 5px; }
@@ -239,6 +318,22 @@
     color: #8bf4b4;
     font-size: 11px;
     margin-left: 6px;
+  }
+
+  @media (max-width: 980px) {
+    .cc-shell {
+      margin-bottom: 12px;
+    }
+    .cc-grid {
+      grid-template-columns: 1fr;
+    }
+    .cc-panel-aside {
+      position: static;
+      top: auto;
+    }
+    .cc-inline-2 {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 600px) {
@@ -356,7 +451,7 @@
         </div>
         <div class="form-group">
           <label>Owner Number <span style="color:var(--text-dim)">(without + or spaces)</span></label>
-          <input type="text" id="ownerNumber" placeholder="919876543210" />
+          <input type="text" id="ownerNumber" placeholder="60123456789" value="60123456789" />
         </div>
         <div class="form-group">
           <label>Command Mode</label>
@@ -545,37 +640,57 @@
 
   <!-- Custom Commands Tab -->
   <div id="tab-customcmds" style="display:none">
-    <div class="grid grid-2 cc-grid" style="margin-bottom:16px">
+    <div class="cc-shell">
+    <div class="grid cc-grid" style="margin-bottom:0">
 
       <!-- Add Command Form -->
-      <div class="card cc-panel">
-        <div class="card-title">
+      <div class="card cc-panel cc-panel-main">
+        <div class="card-title cc-main-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Custom Command
         </div>
-        <div class="form-group">
-          <label>Step 1: Media Type</label>
-          <select id="ccMediaType" onchange="toggleMediaFields()">
-            <option value="">— Choose media type first —</option>
-            <option value="text">📝 Text</option>
-            <option value="image">🖼️ Image</option>
-            <option value="video">🎬 Video</option>
-            <option value="audio">🎵 Audio / Music</option>
-            <option value="document">📄 File / Document</option>
-            <option value="url">🔗 URL / Link</option>
-          </select>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Isi command ikut susunan ringkas: trigger + category, description, text/caption, kemudian pilih media jika perlu.</p>
+        <div class="cc-composer">
+          <div class="cc-composer-title">Content</div>
+          <div class="cc-inline-2" style="margin-bottom:12px">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Trigger <span style="color:var(--text-dim)">(must start with .)</span></label>
+              <input type="text" id="ccTrigger" placeholder=".hello" />
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label id="ccCategoryLabel">Category</label>
+              <select id="ccCategory">
+                <option value="General">General</option>
+                <option value="Greeting">Greeting</option>
+                <option value="Info">Info</option>
+                <option value="Utility">Utility</option>
+                <option value="Fun">Fun</option>
+                <option value="Media">Media</option>
+                <option value="Moderation">Moderation</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id="ccDescriptionWrap" style="margin-bottom:12px">
+            <label id="ccDescriptionLabel">Description <span style="color:var(--text-dim)">(optional)</span></label>
+            <input type="text" id="ccDescription" placeholder="Greeting command" />
+          </div>
+          <div class="form-group" id="ccResponseWrap" style="display:block;margin-bottom:0">
+            <label id="ccResponseLabel">Text</label>
+            <textarea id="ccResponse" rows="4" placeholder="Tulis text atau caption di sini..."></textarea>
+            <input type="hidden" id="ccMediaType" value="text" />
+            <div class="cc-type-icons" id="ccTypeIcons">
+              <button type="button" class="cc-type-btn active" data-type="text" onclick="setCcComposerType('text')">📝 Text</button>
+              <button type="button" class="cc-type-btn" data-type="image" onclick="setCcComposerType('image')">🖼️ Gallery</button>
+              <button type="button" class="cc-type-btn" data-type="video" onclick="setCcComposerType('video')">🎬 Video</button>
+              <button type="button" class="cc-type-btn" data-type="audio" onclick="setCcComposerType('audio')">🎵 Music</button>
+              <button type="button" class="cc-type-btn" data-type="document" onclick="setCcComposerType('document')">📄 Document</button>
+            </div>
+          </div>
         </div>
-        <div id="ccComposeFields" style="display:none">
-        <div class="form-group">
-          <label>Step 2: Trigger <span style="color:var(--text-dim)">(must start with .)</span></label>
-          <input type="text" id="ccTrigger" placeholder=".hello" />
-        </div>
-        <div class="form-group" id="ccResponseWrap" style="display:none">
-          <label id="ccResponseLabel">Response</label>
-          <textarea id="ccResponse" rows="4" placeholder="Hello! Welcome to the group 👋"></textarea>
-        </div>
+        <div id="ccComposeFields" style="display:block">
         <div id="ccMediaSection" style="display:none;border-top:1px solid var(--border);margin:16px 0 14px;padding-top:14px">
-          <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">📎 Media Attachment</div>
+          <div id="ccMediaHeading" style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">Media Attachment</div>
           <div id="ccMediaUrlWrap" style="display:none">
             <div class="form-group" id="ccMediaSourceWrap">
               <label>Source</label>
@@ -607,45 +722,34 @@
           </div>
         </div>
         <div class="form-group" id="ccButtonsWrap" style="display:none">
-          <label>Step 3: Buttons <span style="color:var(--text-dim)">(optional)</span></label>
+          <label id="ccButtonsLabel">Buttons <span style="color:var(--text-dim)">(optional)</span></label>
           <div class="cc-help" style="margin-bottom:8px">Supported UI types: <b style="color:var(--text)">quick_reply</b>, <b style="color:var(--text)">cta_url</b>, <b style="color:var(--text)">cta_call</b>, <b style="color:var(--text)">cta_copy</b>, <b style="color:var(--text)">single_select</b>.</div>
           <div id="ccButtonsContainer" style="display:flex;flex-direction:column;gap:8px"></div>
           <button type="button" class="btn btn-outline btn-sm" onclick="addCcButtonRow('ccButtonsContainer')" style="margin-top:8px">+ Add Button</button>
         </div>
-        <div class="form-group" id="ccCategoryWrap" style="display:none">
-          <label>Step 4: Category</label>
-          <select id="ccCategory">
-            <option value="General">General</option>
-            <option value="Greeting">Greeting</option>
-            <option value="Info">Info</option>
-            <option value="Utility">Utility</option>
-            <option value="Fun">Fun</option>
-            <option value="Media">Media</option>
-            <option value="Moderation">Moderation</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div class="form-group" id="ccDescriptionWrap" style="display:none">
-          <label>Description <span style="color:var(--text-dim)">(optional)</span></label>
-          <input type="text" id="ccDescription" placeholder="Greeting command" />
-        </div>
         </div>
         <button class="btn btn-green" onclick="addCustomCommand()" style="width:100%">➕ Add Command</button>
-        <p style="font-size:12px;color:var(--text-dim);margin-top:8px;text-align:center">Command is active immediately — no restart needed.</p>
+        <p class="cc-note">Command terus aktif, tak perlu restart.</p>
       </div>
 
       <!-- Info Panel -->
-      <div class="card cc-panel" style="display:flex;flex-direction:column;gap:12px">
+      <div class="cc-aside">
+      <div class="card cc-panel cc-panel-aside" style="display:flex;flex-direction:column;gap:12px">
         <div class="card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Custom Command Guide
+          Ringkasan
         </div>
-        <div style="font-size:13px;color:var(--text-dim);line-height:1.7">
-          Bina command berbutang dengan format visual. Dashboard ini terus hasilkan struktur JSON yang serasi dengan interactive message di atexovi-baileys.
+        <div class="cc-help">
+          Pilih type dan tulis text/caption dalam composer.<br>
+          Letak trigger bermula dengan titik.<br>
+          Tambah media, button, dan category jika perlu.<br>
+          Lepas itu tekan Add Command.
         </div>
         <button class="btn btn-outline" onclick="openCcGuideModal()">📘 How It Works</button>
         <div id="ccStats" style="font-size:13px;color:var(--text-dim);padding:10px;background:var(--surface2);border-radius:8px;text-align:center"></div>
       </div>
+      </div>
+    </div>
     </div>
 
     <!-- Commands List -->
@@ -886,20 +990,33 @@ async function loadCommandList() {
     const custom = Array.isArray(data.custom) ? data.custom : []
     const total = Number(data.total || builtIn.length + custom.length)
 
-    const renderRows = (rows) => rows.map((row) => `
+    const renderRows = (rows, emptyMessage) => {
+      if (!rows.length) {
+        return `<tr class="list-row"><td colspan="3" style="padding:10px;color:var(--text-dim)">${escapeHtml(emptyMessage)}</td></tr>`
+      }
+      return rows.map((row) => `
       <tr class="list-row">
         <td style="padding:10px;font-weight:600">${escapeHtml(row.trigger || '')}</td>
         <td style="padding:10px;color:var(--text-dim)">${escapeHtml(row.name || '')}</td>
         <td style="padding:10px;color:var(--text-dim)">${escapeHtml(row.source || '')}</td>
       </tr>
     `).join('')
+    }
 
     el.innerHTML = `
-      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Total commands: ${total}</p>
+      <p id="commandListSummary" style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Showing ${total} of ${total} commands</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+        <input id="commandSearchInput" type="text" placeholder="Search trigger, name, or source..." style="flex:1 1 280px" />
+        <select id="commandTypeFilter" style="flex:0 1 220px">
+          <option value="all">All Types</option>
+          <option value="built-in">Built-in Only</option>
+          <option value="custom">Custom Only</option>
+        </select>
+      </div>
       <div class="card list-frame" style="margin-bottom:14px;padding:0;overflow:hidden">
         <div class="list-head">
           <div style="font-weight:700">Built-in Commands</div>
-          <div style="font-size:12px;color:var(--text-dim)">${builtIn.length} items</div>
+          <div id="builtInCount" style="font-size:12px;color:var(--text-dim)">${builtIn.length} items</div>
         </div>
         <div style="overflow-x:auto">
           <table class="list-table" style="width:100%;border-collapse:collapse;font-size:13px">
@@ -910,14 +1027,14 @@ async function loadCommandList() {
                 <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Source</th>
               </tr>
             </thead>
-            <tbody>${renderRows(builtIn)}</tbody>
+            <tbody id="builtInRows">${renderRows(builtIn, 'No built-in commands found.')}</tbody>
           </table>
         </div>
       </div>
       <div class="card list-frame" style="padding:0;overflow:hidden">
         <div class="list-head">
           <div style="font-weight:700">Custom Commands</div>
-          <div style="font-size:12px;color:var(--text-dim)">${custom.length} items</div>
+          <div id="customCount" style="font-size:12px;color:var(--text-dim)">${custom.length} items</div>
         </div>
         <div style="overflow-x:auto">
           <table class="list-table" style="width:100%;border-collapse:collapse;font-size:13px">
@@ -928,11 +1045,50 @@ async function loadCommandList() {
                 <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Source</th>
               </tr>
             </thead>
-            <tbody>${custom.length ? renderRows(custom) : '<tr class="list-row"><td colspan="3" style="padding:10px;color:var(--text-dim)">No custom commands yet.</td></tr>'}</tbody>
+            <tbody id="customRows">${renderRows(custom, 'No custom commands yet.')}</tbody>
           </table>
         </div>
       </div>
     `
+
+    const summaryEl = document.getElementById('commandListSummary')
+    const builtInCountEl = document.getElementById('builtInCount')
+    const customCountEl = document.getElementById('customCount')
+    const builtInRowsEl = document.getElementById('builtInRows')
+    const customRowsEl = document.getElementById('customRows')
+    const searchInput = document.getElementById('commandSearchInput')
+    const typeFilter = document.getElementById('commandTypeFilter')
+    const builtInCard = builtInRowsEl?.closest('.list-frame')
+    const customCard = customRowsEl?.closest('.list-frame')
+
+    const applyFilter = () => {
+      const q = String(searchInput?.value || '').trim().toLowerCase()
+      const selectedType = String(typeFilter?.value || 'all')
+
+      const matchesQuery = (row) => {
+        if (!q) return true
+        return [row.trigger, row.name, row.source].some((value) => String(value || '').toLowerCase().includes(q))
+      }
+
+      const showBuiltIn = selectedType !== 'custom'
+      const showCustom = selectedType !== 'built-in'
+
+      const filteredBuiltIn = showBuiltIn ? builtIn.filter(matchesQuery) : []
+      const filteredCustom = showCustom ? custom.filter(matchesQuery) : []
+      const shownTotal = filteredBuiltIn.length + filteredCustom.length
+
+      if (summaryEl) summaryEl.textContent = `Showing ${shownTotal} of ${total} commands`
+      if (builtInCountEl) builtInCountEl.textContent = `${filteredBuiltIn.length} items`
+      if (customCountEl) customCountEl.textContent = `${filteredCustom.length} items`
+      if (builtInRowsEl) builtInRowsEl.innerHTML = renderRows(filteredBuiltIn, 'No built-in commands match your filter.')
+      if (customRowsEl) customRowsEl.innerHTML = renderRows(filteredCustom, 'No custom commands match your filter.')
+      if (builtInCard) builtInCard.style.display = showBuiltIn ? '' : 'none'
+      if (customCard) customCard.style.display = showCustom ? '' : 'none'
+    }
+
+    if (searchInput) searchInput.addEventListener('input', applyFilter)
+    if (typeFilter) typeFilter.addEventListener('change', applyFilter)
+    applyFilter()
   } catch (e) {
     el.innerHTML = '<p style="color:var(--red);font-size:13px">Failed to load command list.</p>'
   }
@@ -986,7 +1142,7 @@ async function loadSettings() {
     const data = await fetch('/api/settings').then(r => r.json())
     document.getElementById('botName').value = data.botName || ''
     document.getElementById('botOwner').value = data.botOwner || ''
-    document.getElementById('ownerNumber').value = data.ownerNumber || ''
+    document.getElementById('ownerNumber').value = data.ownerNumber || '60123456789'
     document.getElementById('commandMode').value = data.commandMode || 'public'
     const tzSelect = document.getElementById('timeZone')
     const currentTz = data.timeZone || 'Asia/Kuala_Lumpur'
@@ -1680,8 +1836,9 @@ function escapeAttr(s) {
 
 // ── Media source helpers ───────────────────────────────────────────────────
 function toggleMediaFields() {
-  const type = document.getElementById('ccMediaType').value
-  const hasSelection = !!type
+  const rawType = document.getElementById('ccMediaType').value
+  const type = rawType || 'text'
+  const hasSelection = true
   const isText = type === 'text'
   const isUrl = type === 'url'
   const hasMedia = hasSelection && !isText
@@ -1689,20 +1846,38 @@ function toggleMediaFields() {
   document.getElementById('ccComposeFields').style.display = hasSelection ? '' : 'none'
   document.getElementById('ccResponseWrap').style.display = hasSelection ? '' : 'none'
   document.getElementById('ccButtonsWrap').style.display = hasSelection ? '' : 'none'
-  document.getElementById('ccCategoryWrap').style.display = hasSelection ? '' : 'none'
-  document.getElementById('ccDescriptionWrap').style.display = hasSelection ? '' : 'none'
   document.getElementById('ccMediaSection').style.display = hasMedia ? '' : 'none'
   document.getElementById('ccMediaUrlWrap').style.display = hasMedia ? '' : 'none'
   document.getElementById('ccFileNameWrap').style.display = type === 'document' ? '' : 'none'
 
   const responseLabel = document.getElementById('ccResponseLabel')
+  const mediaHeading = document.getElementById('ccMediaHeading')
+  const buttonsLabel = document.getElementById('ccButtonsLabel')
+  const categoryLabel = document.getElementById('ccCategoryLabel')
+  const descriptionLabel = document.getElementById('ccDescriptionLabel')
+
   if (isText) {
-    responseLabel.textContent = 'Step 3: Respond'
-    document.getElementById('ccResponse').placeholder = 'Hello! Welcome to the group 👋'
+    responseLabel.textContent = 'Text'
+    if (buttonsLabel) buttonsLabel.innerHTML = 'Buttons <span style="color:var(--text-dim)">(optional)</span>'
+    if (categoryLabel) categoryLabel.textContent = 'Category'
+    if (descriptionLabel) descriptionLabel.innerHTML = 'Description <span style="color:var(--text-dim)">(optional)</span>'
+    document.getElementById('ccResponse').placeholder = 'Tulis text command...'
   } else if (hasMedia) {
-    responseLabel.textContent = 'Step 3: Caption (optional)'
+    if (mediaHeading) mediaHeading.textContent = 'Media Attachment'
+    responseLabel.textContent = 'Caption (optional)'
+    if (buttonsLabel) buttonsLabel.innerHTML = 'Buttons <span style="color:var(--text-dim)">(optional)</span>'
+    if (categoryLabel) categoryLabel.textContent = 'Category'
+    if (descriptionLabel) descriptionLabel.innerHTML = 'Description <span style="color:var(--text-dim)">(optional)</span>'
     document.getElementById('ccResponse').placeholder = type === 'url' ? 'Check this out 👇 (optional caption)' : 'Caption untuk media (optional)'
+  } else {
+    if (buttonsLabel) buttonsLabel.innerHTML = 'Buttons <span style="color:var(--text-dim)">(optional)</span>'
+    if (categoryLabel) categoryLabel.textContent = 'Category'
+    if (descriptionLabel) descriptionLabel.innerHTML = 'Description <span style="color:var(--text-dim)">(optional)</span>'
   }
+
+  document.querySelectorAll('#ccTypeIcons .cc-type-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.type === type)
+  })
 
   const srcToggle = document.getElementById('ccMediaSourceWrap')
   if (srcToggle) srcToggle.style.display = isUrl ? 'none' : ''
@@ -1728,6 +1903,13 @@ function toggleMediaFields() {
       setCcSource('upload')
     }
   }
+}
+
+function setCcComposerType(type) {
+  const allowed = ['text', 'image', 'video', 'audio', 'document', 'url']
+  const selected = allowed.includes(type) ? type : 'text'
+  document.getElementById('ccMediaType').value = selected
+  toggleMediaFields()
 }
 
 function setCcSource(mode) {
@@ -2235,7 +2417,7 @@ async function addCustomCommand() {
   const normalizedMediaType = mediaType === 'text' ? '' : mediaType
   const fileName = document.getElementById('ccFileName').value.trim()
 
-  if (!mediaType) { showToast('Please choose a media type first.', 'error'); return }
+  if (!mediaType) { showToast('Please choose a content type first.', 'error'); return }
   if (!trigger) { showToast('Trigger is required.', 'error'); return }
 
   // Determine media URL: uploaded file takes precedence over URL input
@@ -2260,7 +2442,7 @@ async function addCustomCommand() {
     }
   }
 
-  if (mediaType === 'text' && !response) { showToast('Respond is required for text type.', 'error'); return }
+  if (mediaType === 'text' && !response) { showToast('Text is required for text type.', 'error'); return }
   if (!response && !mediaUrl) { showToast('Add a response text or attach media / URL.', 'error'); return }
   if (normalizedMediaType === 'url' && !mediaUrl) { showToast('Please enter a URL.', 'error'); return }
 
@@ -2289,7 +2471,7 @@ async function addCustomCommand() {
       showToast(res.message)
       ;['ccTrigger','ccResponse','ccDescription','ccMediaUrl','ccFileName','ccUploadedUrl'].forEach(id => { document.getElementById(id).value = '' })
       document.getElementById('ccCategory').value = 'General'
-      document.getElementById('ccMediaType').value = ''
+      document.getElementById('ccMediaType').value = 'text'
       document.getElementById('ccMediaFile').value = ''
       document.getElementById('ccUploadProgress').style.display = 'none'
       document.getElementById('ccDropText').style.display = ''
