@@ -986,19 +986,62 @@ async function loadCommandList() {
       return
     }
 
-    const builtIn = Array.isArray(data.builtIn) ? data.builtIn : []
-    const custom = Array.isArray(data.custom) ? data.custom : []
+    const inferPermission = (row, index) => {
+      const trigger = String(row.trigger || '').toLowerCase()
+      if (/(owner|sudo|ban|unban|update|pair)/.test(trigger)) return 'Owner'
+      if (/(kick|mute|unmute|promote|demote|warn|warnings|group|antilink|antitag)/.test(trigger)) return 'Admin'
+      if (/(tagall|hidetag|staff|groupinfo|schedule)/.test(trigger)) return 'Group'
+      if (row.type === 'custom') return 'Everyone'
+      return index % 2 === 0 ? 'Everyone' : 'Group'
+    }
+
+    const inferFunction = (row) => {
+      if (row.type === 'custom') {
+        return `Custom command untuk balas trigger ${row.trigger || ''} dengan respon yang telah ditetapkan.`
+      }
+      return `Command ${row.name || row.trigger || ''} menjalankan fungsi bot berdasarkan modul ${row.source || 'system'}.`
+    }
+
+    const inferUsage = (row) => {
+      const trigger = row.trigger || '.'
+      if (row.type === 'custom') return `${trigger} (ikut response yang diset)`
+      return `${trigger} [parameter optional]`
+    }
+
+    const normalizeRows = (rows, type) => rows.map((row, index) => ({
+      ...row,
+      type,
+      permission: inferPermission({ ...row, type }, index),
+      usage: inferUsage({ ...row, type }),
+      functionText: inferFunction({ ...row, type }),
+      _id: `${type}-${index}`,
+    }))
+
+    const builtIn = normalizeRows(Array.isArray(data.builtIn) ? data.builtIn : [], 'built-in')
+    const custom = normalizeRows(Array.isArray(data.custom) ? data.custom : [], 'custom')
+    const allCommandsById = new Map([...builtIn, ...custom].map((row) => [row._id, row]))
     const total = Number(data.total || builtIn.length + custom.length)
+
+    const permissionText = (permission) => {
+      const p = String(permission || 'Everyone')
+      if (p === 'Owner') return `<span style="color:var(--red);font-weight:600">Owner</span>`
+      if (p === 'Admin') return `<span style="color:var(--yellow);font-weight:600">Admin</span>`
+      if (p === 'Group') return `<span style="color:var(--blue);font-weight:600">Group</span>`
+      return `<span style="color:var(--green);font-weight:600">Everyone</span>`
+    }
 
     const renderRows = (rows, emptyMessage) => {
       if (!rows.length) {
-        return `<tr class="list-row"><td colspan="3" style="padding:10px;color:var(--text-dim)">${escapeHtml(emptyMessage)}</td></tr>`
+        return `<tr class="list-row"><td colspan="4" style="padding:10px;color:var(--text-dim);text-align:left">${escapeHtml(emptyMessage)}</td></tr>`
       }
       return rows.map((row) => `
       <tr class="list-row">
-        <td style="padding:10px;font-weight:600">${escapeHtml(row.trigger || '')}</td>
-        <td style="padding:10px;color:var(--text-dim)">${escapeHtml(row.name || '')}</td>
-        <td style="padding:10px;color:var(--text-dim)">${escapeHtml(row.source || '')}</td>
+        <td style="padding:10px;font-weight:600;text-align:left">${escapeHtml(row.trigger || '')}</td>
+        <td style="padding:10px;color:var(--text-dim);text-align:left">${escapeHtml(row.name || '')}</td>
+        <td style="padding:10px;text-align:left">${permissionText(row.permission)}</td>
+        <td style="padding:10px;text-align:center">
+          <button class="cmd-info-btn" data-cmdid="${escapeHtml(row._id)}" title="Lihat fungsi & cara guna" style="width:28px;height:28px;border-radius:999px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-weight:700;cursor:pointer">?</button>
+        </td>
       </tr>
     `).join('')
     }
@@ -1006,11 +1049,18 @@ async function loadCommandList() {
     el.innerHTML = `
       <p id="commandListSummary" style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Showing ${total} of ${total} commands</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-        <input id="commandSearchInput" type="text" placeholder="Search trigger, name, or source..." style="flex:1 1 280px" />
+        <input id="commandSearchInput" type="text" placeholder="Search trigger, name, or permission..." style="flex:1 1 280px" />
         <select id="commandTypeFilter" style="flex:0 1 220px">
           <option value="all">All Types</option>
           <option value="built-in">Built-in Only</option>
           <option value="custom">Custom Only</option>
+        </select>
+        <select id="commandPermissionFilter" style="flex:0 1 220px">
+          <option value="all">All Permissions</option>
+          <option value="Admin">Admin</option>
+          <option value="Owner">Owner</option>
+          <option value="Everyone">Everyone</option>
+          <option value="Group">Group</option>
         </select>
       </div>
       <div class="card list-frame" style="margin-bottom:14px;padding:0;overflow:hidden">
@@ -1024,7 +1074,8 @@ async function loadCommandList() {
               <tr class="list-head-row">
                 <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Trigger</th>
                 <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Name</th>
-                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Source</th>
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Permission</th>
+                <th style="text-align:center;padding:8px 10px;color:var(--text-dim)">Action</th>
               </tr>
             </thead>
             <tbody id="builtInRows">${renderRows(builtIn, 'No built-in commands found.')}</tbody>
@@ -1041,12 +1092,28 @@ async function loadCommandList() {
             <thead>
               <tr class="list-head-row">
                 <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Trigger</th>
-                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Description</th>
-                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Source</th>
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Name</th>
+                <th style="text-align:left;padding:8px 10px;color:var(--text-dim)">Permission</th>
+                <th style="text-align:center;padding:8px 10px;color:var(--text-dim)">Action</th>
               </tr>
             </thead>
             <tbody id="customRows">${renderRows(custom, 'No custom commands yet.')}</tbody>
           </table>
+        </div>
+      </div>
+      <div id="commandInfoModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:220;align-items:center;justify-content:center;padding:18px" onclick="if(event.target===this)this.style.display='none'">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;max-width:520px;width:100%;padding:20px">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px">
+            <div style="font-size:16px;font-weight:700">Command Info <span id="cmdInfoTrigger" style="color:var(--green)"></span></div>
+            <button data-cmd-close="1" class="btn btn-outline btn-sm">✕ Close</button>
+          </div>
+          <div style="display:grid;gap:10px;font-size:13px;color:var(--text-dim)">
+            <div><b style="color:var(--text)">Name:</b> <span id="cmdInfoName">-</span></div>
+            <div><b style="color:var(--text)">Permission:</b> <span id="cmdInfoPermission">-</span></div>
+            <div><b style="color:var(--text)">Fungsi:</b> <span id="cmdInfoFunction">-</span></div>
+            <div><b style="color:var(--text)">Cara Guna:</b></div>
+            <div id="cmdInfoUsage" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text)">-</div>
+          </div>
         </div>
       </div>
     `
@@ -1058,23 +1125,36 @@ async function loadCommandList() {
     const customRowsEl = document.getElementById('customRows')
     const searchInput = document.getElementById('commandSearchInput')
     const typeFilter = document.getElementById('commandTypeFilter')
+    const permissionFilter = document.getElementById('commandPermissionFilter')
     const builtInCard = builtInRowsEl?.closest('.list-frame')
     const customCard = customRowsEl?.closest('.list-frame')
+    const modalEl = document.getElementById('commandInfoModal')
+    const modalTriggerEl = document.getElementById('cmdInfoTrigger')
+    const modalNameEl = document.getElementById('cmdInfoName')
+    const modalPermissionEl = document.getElementById('cmdInfoPermission')
+    const modalFunctionEl = document.getElementById('cmdInfoFunction')
+    const modalUsageEl = document.getElementById('cmdInfoUsage')
 
     const applyFilter = () => {
       const q = String(searchInput?.value || '').trim().toLowerCase()
       const selectedType = String(typeFilter?.value || 'all')
+      const selectedPermission = String(permissionFilter?.value || 'all')
 
       const matchesQuery = (row) => {
         if (!q) return true
-        return [row.trigger, row.name, row.source].some((value) => String(value || '').toLowerCase().includes(q))
+        return [row.trigger, row.name, row.permission, row.source].some((value) => String(value || '').toLowerCase().includes(q))
+      }
+
+      const matchesPermission = (row) => {
+        if (selectedPermission === 'all') return true
+        return String(row.permission || '').toLowerCase() === selectedPermission.toLowerCase()
       }
 
       const showBuiltIn = selectedType !== 'custom'
       const showCustom = selectedType !== 'built-in'
 
-      const filteredBuiltIn = showBuiltIn ? builtIn.filter(matchesQuery) : []
-      const filteredCustom = showCustom ? custom.filter(matchesQuery) : []
+      const filteredBuiltIn = showBuiltIn ? builtIn.filter((row) => matchesQuery(row) && matchesPermission(row)) : []
+      const filteredCustom = showCustom ? custom.filter((row) => matchesQuery(row) && matchesPermission(row)) : []
       const shownTotal = filteredBuiltIn.length + filteredCustom.length
 
       if (summaryEl) summaryEl.textContent = `Showing ${shownTotal} of ${total} commands`
@@ -1086,8 +1166,35 @@ async function loadCommandList() {
       if (customCard) customCard.style.display = showCustom ? '' : 'none'
     }
 
+    const openCommandInfo = (row) => {
+      if (!row || !modalEl) return
+      if (modalTriggerEl) modalTriggerEl.textContent = row.trigger || ''
+      if (modalNameEl) modalNameEl.textContent = row.name || '-'
+      if (modalPermissionEl) modalPermissionEl.textContent = row.permission || 'Everyone'
+      if (modalFunctionEl) modalFunctionEl.textContent = row.functionText || '-'
+      if (modalUsageEl) modalUsageEl.textContent = row.usage || '-'
+      modalEl.style.display = 'flex'
+    }
+
+    const closeCommandInfo = () => {
+      if (modalEl) modalEl.style.display = 'none'
+    }
+
+    el.onclick = (event) => {
+      const closeBtn = event.target.closest('[data-cmd-close="1"]')
+      if (closeBtn) {
+        closeCommandInfo()
+        return
+      }
+      const infoBtn = event.target.closest('.cmd-info-btn')
+      if (!infoBtn) return
+      const row = allCommandsById.get(String(infoBtn.dataset.cmdid || ''))
+      openCommandInfo(row)
+    }
+
     if (searchInput) searchInput.addEventListener('input', applyFilter)
     if (typeFilter) typeFilter.addEventListener('change', applyFilter)
+    if (permissionFilter) permissionFilter.addEventListener('change', applyFilter)
     applyFilter()
   } catch (e) {
     el.innerHTML = '<p style="color:var(--red);font-size:13px">Failed to load command list.</p>'
