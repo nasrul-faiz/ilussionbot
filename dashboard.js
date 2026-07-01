@@ -13,6 +13,7 @@ const {
     formatDateTime,
 } = require('./lib/scheduler')
 const { refreshRuntimeSettings, getCurrentSettings } = require('./lib/runtimeSettings')
+const { clearSensitiveData } = require('./lib/privacyCleanup')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -334,7 +335,7 @@ app.get('/api/status', async (req, res) => {
     const messageCount = readJSON('./data/messageCount.json', {})
     const qrState = readJSON('./data/qrState.json', {})
     const connected = !!(creds && creds.me && creds.registered) || qrState.status === 'connected'
-    const account = creds?.me || null
+    const account = connected ? (creds?.me || null) : null
     const botInfo = readJSON('./data/botInfo.json', {})
 
     const totalMessages = Object.values(messageCount).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0)
@@ -357,8 +358,8 @@ app.get('/api/status', async (req, res) => {
         liveProfilePic = await getLiveProfilePic(account)
     } catch (_) {}
 
-    const profilePic = liveProfilePic || botInfo.profilePic || null
-    if (liveProfilePic && liveProfilePic !== botInfo.profilePic) {
+    const profilePic = connected ? (liveProfilePic || botInfo.profilePic || null) : null
+    if (connected && liveProfilePic && liveProfilePic !== botInfo.profilePic) {
         try {
             const nextBotInfo = { ...botInfo, profilePic: liveProfilePic, updatedAt: Date.now() }
             fs.writeFileSync('./data/botInfo.json', JSON.stringify(nextBotInfo, null, 2))
@@ -564,15 +565,20 @@ app.get('/api/session/export', (req, res) => {
 // ── API: Session reset (delete session → bot will regenerate QR) ────────────
 app.post('/api/session/reset', (req, res) => {
     try {
-        const sessionDir = path.join(__dirname, 'session')
-        if (fs.existsSync(sessionDir)) {
-            fs.readdirSync(sessionDir).forEach(f => {
-                try { fs.unlinkSync(path.join(sessionDir, f)) } catch (_) {}
-            })
-        }
+        const cleaned = clearSensitiveData({ wipeSession: true, clearLogs: true })
         try { fs.writeFileSync('./data/qrState.json', JSON.stringify({ status: 'resetting', timestamp: Date.now() })) } catch (_) {}
-        try { fs.writeFileSync('./data/botInfo.json', JSON.stringify({})) } catch (_) {}
-        res.json({ success: true, message: 'Session cleared. Bot will show QR code shortly.' })
+        if (!cleaned?.ok && Array.isArray(cleaned?.errors) && cleaned.errors.length) {
+            console.error(`Privacy cleanup issues via API reset: ${cleaned.errors.join(' | ')}`)
+        }
+        res.json({
+            success: true,
+            message: 'Session cleared. Bot will show QR code shortly.',
+            cleanup: {
+                ok: !!cleaned?.ok,
+                steps: cleaned?.steps || [],
+                errors: cleaned?.errors || [],
+            }
+        })
         setTimeout(() => process.exit(1), 500)
     } catch (err) {
         res.status(500).json({ success: false, error: err.message })
@@ -840,6 +846,13 @@ app.post('/api/premium-users', (req, res) => {
 // ── API: Groups Info ────────────────────────────────────────────────────────────
 app.get('/api/groups', async (req, res) => {
     try {
+        const creds = readJSON('./session/creds.json')
+        const qrState = readJSON('./data/qrState.json', {})
+        const connected = !!(creds && creds.me && creds.registered) || qrState.status === 'connected'
+        if (!connected) {
+            return res.json([])
+        }
+
         const userGroupData = readJSON('./data/userGroupData.json', {})
         const messageCount = readJSON('./data/messageCount.json', {})
         const storeGroupNames = getGroupNamesFromStore()

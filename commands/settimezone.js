@@ -29,7 +29,7 @@ module.exports = async function setTimezoneCommand(sock, chatId, message, rawTex
         const requestedZone = (parts[1] || '').trim();
 
         const currentSettings = getCurrentSettings('../settings');
-        const currentZone = (currentSettings.timeZone || 'UTC').trim();
+        const currentZone = (currentSettings.timeZone || 'Asia/Kuala_Lumpur').trim();
 
         if (!requestedZone) {
             await sock.sendMessage(chatId, {
@@ -39,7 +39,7 @@ module.exports = async function setTimezoneCommand(sock, chatId, message, rawTex
                     '',
                     'Guna:',
                     '• `.settimezone Asia/Kuala_Lumpur`',
-                    '• `.timezone Asia/Jakarta`',
+                    '• `.timezone Asia/Singapore`',
                     '',
                     'Tip: guna format IANA timezone (cth: Asia/Singapore, Europe/London).'
                 ].join('\n')
