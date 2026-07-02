@@ -164,9 +164,25 @@ async function startXeonBotInc() {
         })
 
         const _rawSendMessage = XeonBotInc.sendMessage.bind(XeonBotInc)
+        const isQuotedCommandMessage = (quoted) => {
+            if (!quoted || typeof quoted !== 'object') return false
+            if (quoted.__noReplyForCommand) return true
+
+            const qMsg = quoted.message || {}
+            const commandText = (
+                qMsg?.conversation ||
+                qMsg?.extendedTextMessage?.text ||
+                qMsg?.imageMessage?.caption ||
+                qMsg?.videoMessage?.caption ||
+                ''
+            ).toString().trim().toLowerCase().replace(/\.\s+/g, '.')
+
+            return commandText.startsWith('.')
+        }
+
         XeonBotInc.sendMessage = (jid, content, options = {}) => {
             const shouldSendCommandAsNormalMessage = settings.commandReplyAsNormalMessage !== false
-            if (shouldSendCommandAsNormalMessage && options && options.quoted && options.quoted.__noReplyForCommand) {
+            if (shouldSendCommandAsNormalMessage && options && isQuotedCommandMessage(options.quoted)) {
                 const { quoted, ...rest } = options
                 return _rawSendMessage(jid, content, rest)
             }

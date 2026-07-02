@@ -43,8 +43,6 @@
     --sidebar-panel-bg: linear-gradient(165deg, rgba(24, 24, 27, .96), rgba(9, 9, 11, .94));
     --sidebar-panel-border: rgba(63, 63, 70, .92);
     --sidebar-panel-shadow: 12px 0 32px rgba(0, 0, 0, .55);
-    --sidebar-brand-bg: linear-gradient(135deg, rgba(34, 197, 94, .16), rgba(59, 130, 246, .10));
-    --sidebar-brand-border: rgba(63, 63, 70, .9);
     --sidebar-label-line: rgba(82, 82, 91, .55);
     --sidebar-nav-hover: rgba(39, 39, 42, .92);
     --sidebar-nav-active: linear-gradient(90deg, rgba(34, 197, 94, .24), rgba(59, 130, 246, .18));
@@ -86,8 +84,6 @@
     --sidebar-panel-bg: linear-gradient(165deg, rgba(255, 255, 255, .98), rgba(240, 244, 249, .95));
     --sidebar-panel-border: rgba(203, 213, 225, .95);
     --sidebar-panel-shadow: 10px 0 26px rgba(15, 23, 42, .10);
-    --sidebar-brand-bg: linear-gradient(135deg, rgba(22, 163, 74, .14), rgba(37, 99, 235, .08));
-    --sidebar-brand-border: rgba(203, 213, 225, .95);
     --sidebar-label-line: rgba(148, 163, 184, .65);
     --sidebar-nav-hover: rgba(241, 245, 249, .95);
     --sidebar-nav-active: linear-gradient(90deg, rgba(22, 163, 74, .20), rgba(37, 99, 235, .12));
@@ -133,32 +129,6 @@
   .sidebar.open { transform: translateX(0); box-shadow: var(--sidebar-panel-shadow); }
   .sidebar::-webkit-scrollbar { width: 7px; }
   .sidebar::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--green) 35%, transparent); border-radius: 99px; }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text);
-    padding: 10px;
-    border-radius: 12px;
-    border: 1px solid var(--sidebar-brand-border);
-    background: var(--sidebar-brand-bg);
-    margin-bottom: 6px;
-  }
-  .brand-icon {
-    width: 36px;
-    height: 36px;
-    padding: 7px;
-    box-sizing: border-box;
-    color: var(--green);
-    background: color-mix(in srgb, var(--surface) 78%, transparent);
-    border: 1px solid color-mix(in srgb, var(--green) 30%, var(--border));
-    border-radius: 10px;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-  .brand-copy { display: flex; flex-direction: column; min-width: 0; }
-  .brandtext { font-weight: 700; font-size: 14px; color: var(--text); letter-spacing: .01em; }
-  .brand-sub { font-size: 11px; color: var(--text-dim); letter-spacing: .04em; text-transform: uppercase; margin-top: 1px; }
   .side-label {
     position: relative;
     font-size: 10px;
@@ -236,7 +206,7 @@
   .side-status {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
     font-size: 12px;
     font-weight: 600;
     color: var(--text-dim);
@@ -246,8 +216,7 @@
     background: var(--sidebar-status-bg);
     margin-top: 4px;
   }
-  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); animation: none; flex-shrink: 0; }
-  .dot.online { background: var(--green); animation: pulse 2s infinite; }
+  .side-status-text { text-align: center; width: 100%; }
   .main { flex: 1; min-width: 0; width: 100%; overflow: visible; }
   .top-nav {
     position: -webkit-sticky;
@@ -485,6 +454,47 @@
     letter-spacing: .08em;
     margin-bottom: 12px;
   }
+  .cc-fieldset {
+    border: 1px solid color-mix(in srgb, var(--green) 22%, var(--border));
+    border-radius: 12px;
+    padding: 12px;
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    margin-bottom: 12px;
+  }
+  .cc-field-legend {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 0 6px;
+    letter-spacing: .02em;
+  }
+  .cc-field-description {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.55;
+    margin: 4px 2px 10px;
+  }
+  .cc-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cc-field-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .cc-field {
+    margin-bottom: 0;
+  }
+  .cc-field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: .01em;
+  }
   .cc-inline-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -583,6 +593,221 @@
     margin-left: 6px;
   }
 
+  /* Custom Commands tab redesign (shadcn-inspired) */
+  #tab-customcmds .cc-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #tab-customcmds .cc-shell {
+    padding: 0;
+    border-radius: 12px;
+    background: transparent;
+    border: 0;
+  }
+  #tab-customcmds .cc-panel {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .12), 0 8px 28px rgba(0, 0, 0, .08);
+    overflow: hidden;
+  }
+  #tab-customcmds .cc-panel::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--green) 55%, transparent), color-mix(in srgb, var(--blue) 45%, transparent));
+    opacity: .45;
+    pointer-events: none;
+  }
+  #tab-customcmds .cc-panel-main {
+    padding: 24px;
+  }
+  #tab-customcmds .cc-panel-aside {
+    top: 14px;
+  }
+  #tab-customcmds .cc-main-title {
+    margin-bottom: 16px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  #tab-customcmds .cc-composer {
+    border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    border-radius: 10px;
+    padding: 16px;
+    background: color-mix(in srgb, var(--surface2) 76%, transparent);
+    margin-bottom: 20px;
+  }
+  #tab-customcmds .cc-field-group {
+    gap: 14px;
+  }
+  #tab-customcmds .cc-field-grid-2 {
+    gap: 14px;
+  }
+  #tab-customcmds .cc-fieldset {
+    border-color: color-mix(in srgb, var(--border) 85%, transparent);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    border-radius: 10px;
+  }
+  #tab-customcmds .cc-field-legend {
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  #tab-customcmds .cc-field-description {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  #tab-customcmds .form-group {
+    margin-bottom: 14px;
+  }
+  #tab-customcmds label {
+    margin-bottom: 8px;
+  }
+  #tab-customcmds #ccComposeFields {
+    display: flex !important;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #tab-customcmds #ccMediaSection {
+    margin: 2px 0 0 !important;
+    padding-top: 16px !important;
+  }
+  #tab-customcmds #ccButtonsWrap {
+    margin-bottom: 0 !important;
+  }
+  #tab-customcmds #ccButtonsContainer {
+    gap: 10px !important;
+  }
+  #tab-customcmds .cc-button-row {
+    padding: 12px;
+  }
+  #tab-customcmds .cc-type-btn {
+    border-radius: 8px;
+    padding: 7px 11px;
+    border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+    background: var(--surface);
+  }
+  #tab-customcmds .cc-type-btn.active {
+    border-color: color-mix(in srgb, var(--green) 42%, var(--border));
+    background: color-mix(in srgb, var(--green) 12%, var(--surface));
+  }
+  #tab-customcmds .cc-help {
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    background: color-mix(in srgb, var(--surface2) 74%, transparent);
+  }
+  #tab-customcmds .cc-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: left;
+  }
+  #tab-customcmds .cc-panel + .cc-panel {
+    margin-top: 14px;
+  }
+  #tab-customcmds .btn {
+    border-radius: 8px;
+  }
+  #tab-customcmds .btn-green {
+    background: var(--green);
+    color: #062714;
+    font-weight: 700;
+  }
+  #tab-customcmds .btn-green:hover {
+    filter: brightness(.95);
+  }
+  #tab-customcmds .cc-list-card {
+    border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    background: var(--surface);
+  }
+  #tab-customcmds .cc-list-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    background: color-mix(in srgb, var(--surface2) 72%, transparent);
+  }
+  #tab-customcmds .cc-list-head-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  #tab-customcmds .cc-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  #tab-customcmds .cc-list-table th {
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--text-dim);
+    font-weight: 600;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+    background: color-mix(in srgb, var(--surface2) 52%, transparent);
+  }
+  #tab-customcmds .cc-list-table td {
+    padding: 12px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
+  }
+  #tab-customcmds .cc-list-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  #tab-customcmds .cc-trigger-chip {
+    display: inline-flex;
+    align-items: center;
+    background: color-mix(in srgb, var(--surface2) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: var(--green);
+    font-size: 12px;
+  }
+  #tab-customcmds .cc-action-select {
+    min-width: 136px;
+    height: 34px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    background: var(--surface);
+    color: var(--text);
+  }
+  #tab-customcmds .cc-create-footer {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed color-mix(in srgb, var(--border) 78%, transparent);
+  }
+  #tab-customcmds .cc-stats-pill {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 6px 10px;
+    background: color-mix(in srgb, var(--surface2) 86%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    border-radius: 999px;
+  }
+
+  body[data-theme='light'] #tab-customcmds .cc-panel {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 10px 24px rgba(15, 23, 42, .06);
+  }
+  body[data-theme='light'] #tab-customcmds .btn-green {
+    color: #03200f;
+  }
+
   @media (max-width: 980px) {
     .cc-shell {
       margin-bottom: 12px;
@@ -596,6 +821,24 @@
     }
     .cc-inline-2 {
       grid-template-columns: 1fr;
+    }
+    .cc-field-grid-2 {
+      grid-template-columns: 1fr;
+    }
+    #tab-customcmds .cc-panel-main {
+      padding: 18px;
+    }
+  }
+  @media (max-width: 700px) {
+    #tab-customcmds .cc-list-head {
+      padding: 10px 12px;
+    }
+    #tab-customcmds .cc-list-table th,
+    #tab-customcmds .cc-list-table td {
+      padding: 10px;
+    }
+    #tab-customcmds .cc-action-select {
+      min-width: 120px;
     }
   }
 
@@ -651,13 +894,6 @@
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="app">
   <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <svg class="brand-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      <div class="brand-copy">
-        <span class="brandtext">Ilussion Bot</span>
-        <span class="brand-sub">Control Panel</span>
-      </div>
-    </div>
     <div class="side-label top">Bot Status</div>
     <div class="sidebar-status-wrap">
       <div class="status-card" id="statusCard">
@@ -683,8 +919,7 @@
       <button class="nav-item" data-tab="commandlist" onclick="showTab('commandlist', this)" title="Command List"><span class="nav-emoji">📚</span> <span class="nav-label">Command List</span></button>
     </nav>
     <div class="side-status">
-      <div class="dot" id="navDot"></div>
-      <span id="navStatusText" class="side-status-text">Checking...</span>
+      <span id="navStatusText" class="side-status-text">v-</span>
     </div>
   </aside>
   <main class="main">
@@ -800,7 +1035,12 @@
         </div>
         <div class="form-group">
           <label>Alive Buttons</label>
-          <textarea id="aliveButtons" class="settings-textarea" placeholder='[{"buttonId":"ping","buttonText":"Ping"}]'></textarea>
+          <div id="aliveButtonsBuilder" class="cc-panel" style="padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--surface2)"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <button type="button" class="btn btn-outline btn-sm" onclick="addPromoButtonRow('aliveButtonsBuilder')">+ Add Button</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearPromoButtonRows('aliveButtonsBuilder', 'aliveButtons')">Clear</button>
+          </div>
+          <textarea id="aliveButtons" class="settings-textarea" placeholder='[{"buttonId":"ping","buttonText":"Ping"}]' style="display:none"></textarea>
         </div>
         <div class="form-group">
           <label>Menu Message</label>
@@ -812,7 +1052,12 @@
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label>Menu Buttons</label>
-          <textarea id="menuButtons" class="settings-textarea" placeholder='[{"buttonId":"menu","buttonText":"Open Menu"}]'></textarea>
+          <div id="menuButtonsBuilder" class="cc-panel" style="padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--surface2)"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <button type="button" class="btn btn-outline btn-sm" onclick="addPromoButtonRow('menuButtonsBuilder')">+ Add Button</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearPromoButtonRows('menuButtonsBuilder', 'menuButtons')">Clear</button>
+          </div>
+          <textarea id="menuButtons" class="settings-textarea" placeholder='[{"buttonId":"menu","buttonText":"Open Menu"}]' style="display:none"></textarea>
         </div>
       </div>
 
@@ -828,8 +1073,8 @@
         </div>
         <div class="settings-note" style="margin-top:12px">
           <b style="color:var(--text)">Message templates:</b><br>
-          Leave fields blank if you do not use alive/menu media or custom button payloads.<br>
-          If you paste button JSON, make sure it is valid JSON text.
+          Use <b style="color:var(--text)">+ Add Button</b> for Alive/Menu without writing JSON manually.<br>
+          Leave button builder empty if you do not need interactive buttons.
         </div>
         <div class="settings-note" style="margin-top:12px">
           <b style="color:var(--text)">Suggested values:</b><br>
@@ -1026,43 +1271,44 @@
   <div id="tab-customcmds" style="display:none">
     <div class="page-head">
       <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Custom Commands</h1>
-      <p>Create, edit and manage your own bot commands and replies.</p>
+      <p>Create, edit and manage your own bot commands with a cleaner shadcn-style layout.</p>
     </div>
-    <div class="cc-shell">
-    <div class="grid cc-grid" style="margin-bottom:0">
-
-      <!-- Add Command Form -->
-      <div class="card cc-panel cc-panel-main">
+    <!-- Add Command Form -->
+    <div class="card cc-panel cc-panel-main" style="margin-bottom:14px">
         <div class="card-title cc-main-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Custom Command
         </div>
-        <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Isi command ikut susunan ringkas: trigger + category, description, text/caption, kemudian pilih media jika perlu.</p>
         <div class="cc-composer">
-          <div class="cc-composer-title">Content</div>
-          <div class="cc-inline-2" style="margin-bottom:12px">
-            <div class="form-group" style="margin-bottom:0">
-              <label>Trigger <span style="color:var(--text-dim)">(must start with .)</span></label>
-              <input type="text" id="ccTrigger" placeholder=".hello" />
+          <fieldset class="cc-fieldset">
+            <legend class="cc-field-legend">Command Basics</legend>
+            <p class="cc-field-description">Set trigger, category, dan penerangan ringkas command tanpa perlu konfigurasi kompleks.</p>
+            <div class="cc-field-group">
+              <div class="cc-field-grid-2">
+                <div class="cc-field">
+                  <label class="cc-field-label">Trigger <span style="color:var(--text-dim)">(must start with .)</span></label>
+                  <input type="text" id="ccTrigger" placeholder=".hello" />
+                </div>
+                <div class="cc-field">
+                  <label id="ccCategoryLabel" class="cc-field-label">Category</label>
+                  <select id="ccCategory">
+                    <option value="General">General</option>
+                    <option value="Greeting">Greeting</option>
+                    <option value="Info">Info</option>
+                    <option value="Utility">Utility</option>
+                    <option value="Fun">Fun</option>
+                    <option value="Media">Media</option>
+                    <option value="Moderation">Moderation</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div id="ccDescriptionWrap" class="cc-field">
+                <label id="ccDescriptionLabel" class="cc-field-label">Description <span style="color:var(--text-dim)">(optional)</span></label>
+                <input type="text" id="ccDescription" placeholder="Greeting command" />
+              </div>
             </div>
-            <div class="form-group" style="margin-bottom:0">
-              <label id="ccCategoryLabel">Category</label>
-              <select id="ccCategory">
-                <option value="General">General</option>
-                <option value="Greeting">Greeting</option>
-                <option value="Info">Info</option>
-                <option value="Utility">Utility</option>
-                <option value="Fun">Fun</option>
-                <option value="Media">Media</option>
-                <option value="Moderation">Moderation</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group" id="ccDescriptionWrap" style="margin-bottom:12px">
-            <label id="ccDescriptionLabel">Description <span style="color:var(--text-dim)">(optional)</span></label>
-            <input type="text" id="ccDescription" placeholder="Greeting command" />
-          </div>
+          </fieldset>
           <div class="form-group" id="ccResponseWrap" style="display:block;margin-bottom:0">
             <label id="ccResponseLabel">Text</label>
             <textarea id="ccResponse" rows="4" placeholder="Tulis text atau caption di sini..."></textarea>
@@ -1117,31 +1363,15 @@
         </div>
         </div>
         <button class="btn btn-green" onclick="addCustomCommand()" style="width:100%">➕ Add Command</button>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px">
+          <button class="btn btn-outline btn-sm" onclick="openCcGuideModal()">📘 How It Works</button>
+          <div id="ccStats" style="font-size:12px;color:var(--text-dim);padding:6px 10px;background:var(--surface2);border-radius:999px"></div>
+        </div>
         <p class="cc-note">Command terus aktif, tak perlu restart.</p>
       </div>
 
-      <!-- Info Panel -->
-      <div class="cc-aside">
-      <div class="card cc-panel cc-panel-aside" style="display:flex;flex-direction:column;gap:12px">
-        <div class="card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Ringkasan
-        </div>
-        <div class="cc-help">
-          Pilih type dan tulis text/caption dalam composer.<br>
-          Letak trigger bermula dengan titik.<br>
-          Tambah media, button, dan category jika perlu.<br>
-          Lepas itu tekan Add Command.
-        </div>
-        <button class="btn btn-outline" onclick="openCcGuideModal()">📘 How It Works</button>
-        <div id="ccStats" style="font-size:13px;color:var(--text-dim);padding:10px;background:var(--surface2);border-radius:8px;text-align:center"></div>
-      </div>
-      </div>
-    </div>
-    </div>
-
     <!-- Commands List -->
-    <div class="card">
+    <div class="card cc-panel">
       <div class="card-title" style="justify-content:space-between">
         <span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
@@ -1600,10 +1830,8 @@ async function loadStatus() {
     currentStatus = data
 
     const connected = data.connected || data.qrStatus === 'connected'
-    const dot = document.getElementById('navDot')
     const text = document.getElementById('navStatusText')
-    dot.className = 'dot' + (connected ? ' online' : '')
-    text.textContent = connected ? 'Connected' : 'Disconnected'
+    text.textContent = `v${data.version || '-'}`
 
     const badge = document.getElementById('statusBadge')
     badge.className = 'status-badge' + (connected ? ' online' : '')
@@ -1627,16 +1855,100 @@ async function loadStatus() {
     const meta = document.getElementById('statusMeta')
     meta.innerHTML = `
       <span class="status-meta-item ${connected ? 'online' : 'offline'}">${connected ? '🟢 Online' : '🔴 Offline'}</span>
-      <span class="status-meta-item">• v${data.version}</span>
       <span class="status-meta-item">• ${data.commandMode === 'public' ? '🌐 Public' : '🔒 Private'}</span>
     `
 
   } catch(e) {
-    document.getElementById('navStatusText').textContent = 'Error'
+    document.getElementById('navStatusText').textContent = 'v-'
   }
 }
 
 // ── Settings ─────────────────────────────────────────────────────────────────
+function normalizePromoButtonForBuilder(button) {
+  if (!button || typeof button !== 'object') return null
+
+  if (button.name && button.buttonParamsJson) {
+    return {
+      name: button.name,
+      buttonParamsJson: button.buttonParamsJson
+    }
+  }
+
+  if (button.quickReplyButton || button.urlButton || button.callButton) return button
+
+  const legacyText = typeof button.buttonText === 'string'
+    ? button.buttonText
+    : (button.buttonText?.displayText || button.display_text || button.displayText || button.title || '')
+
+  if (button.buttonId || legacyText) {
+    return {
+      name: 'quick_reply',
+      buttonParamsJson: JSON.stringify({
+        display_text: legacyText || button.buttonId || 'Button',
+        id: button.buttonId || legacyText || 'button'
+      })
+    }
+  }
+
+  if (button.url || button.link) {
+    const targetUrl = String(button.url || button.link || '').trim()
+    if (!targetUrl) return null
+    return {
+      name: 'cta_url',
+      buttonParamsJson: JSON.stringify({
+        display_text: legacyText || 'Open Link',
+        url: targetUrl,
+        merchant_url: targetUrl
+      })
+    }
+  }
+
+  return null
+}
+
+function parsePromoButtonsForBuilder(rawButtons) {
+  if (rawButtons == null || rawButtons === '') return []
+
+  let parsed = rawButtons
+  if (typeof parsed === 'string') {
+    const trimmed = parsed.trim()
+    if (!trimmed) return []
+    try {
+      parsed = JSON.parse(trimmed)
+    } catch (_) {
+      return []
+    }
+  }
+
+  if (!Array.isArray(parsed)) return []
+  return parsed.map(normalizePromoButtonForBuilder).filter(Boolean)
+}
+
+function hydratePromoButtonRows(containerId, rawButtons) {
+  resetCcButtonRows(containerId)
+  const buttons = parsePromoButtonsForBuilder(rawButtons)
+  if (!buttons.length) return
+  buttons.forEach((button) => addCcButtonRow(containerId, button))
+}
+
+function addPromoButtonRow(containerId) {
+  addCcButtonRow(containerId)
+}
+
+function clearPromoButtonRows(containerId, fieldId) {
+  resetCcButtonRows(containerId)
+  const hiddenField = document.getElementById(fieldId)
+  if (hiddenField) hiddenField.value = ''
+}
+
+function syncPromoButtonsToField(containerId, fieldId, label) {
+  const hiddenField = document.getElementById(fieldId)
+  if (!hiddenField) return
+
+  const buttons = collectCcButtons(containerId)
+  hiddenField.value = buttons.length ? JSON.stringify(buttons) : ''
+}
+
 async function loadSettings() {
   try {
     const data = await fetch('/api/settings').then(r => r.json())
@@ -1660,13 +1972,23 @@ async function loadSettings() {
     document.getElementById('aliveMessage').value = data.aliveMessage || ''
     document.getElementById('aliveMediaUrl').value = data.aliveMediaUrl || ''
     document.getElementById('aliveButtons').value = data.aliveButtons || ''
+    hydratePromoButtonRows('aliveButtonsBuilder', data.aliveButtons || '')
     document.getElementById('menuMessage').value = data.menuMessage || ''
     document.getElementById('menuMediaUrl').value = data.menuMediaUrl || ''
     document.getElementById('menuButtons').value = data.menuButtons || ''
+    hydratePromoButtonRows('menuButtonsBuilder', data.menuButtons || '')
   } catch(e) {}
 }
 
 async function saveSettings() {
+  try {
+    syncPromoButtonsToField('aliveButtonsBuilder', 'aliveButtons', 'Alive')
+    syncPromoButtonsToField('menuButtonsBuilder', 'menuButtons', 'Menu')
+  } catch (e) {
+    showToast(e.message || 'Invalid button configuration.', 'error')
+    return
+  }
+
   const payload = {
     botName: document.getElementById('botName').value.trim(),
     botOwner: document.getElementById('botOwner').value.trim(),
@@ -2223,11 +2545,7 @@ async function loadSession() {
       infoRow('Platform', platformBadge) +
       infoRow('SESSION_ID Env', sessionEnvBadge) +
       infoRow('Session Updated', fmtAge(status.sessionMtime), 'var(--text-dim)') +
-      infoRow('Bot Uptime', fmtUptime(status.uptime), 'var(--text-dim)') +
-      `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0">
-        <span style="font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Version</span>
-        <span style="font-size:13px;font-weight:600;color:var(--text-dim)">v${status.version}</span>
-      </div>`
+      infoRow('Bot Uptime', fmtUptime(status.uptime), 'var(--text-dim)')
 
   } catch(e) {
     document.getElementById('sessionInfoGrid').innerHTML =
@@ -2296,7 +2614,7 @@ async function loadCustomCommands() {
     stats.textContent = `${cmds.length} custom command${cmds.length !== 1 ? 's' : ''} saved`
 
     if (!cmds.length) {
-      el.innerHTML = '<p style="color:var(--text-dim);font-size:13px;padding:8px 0">No custom commands yet. Add one above! 👆</p>'
+      el.innerHTML = '<p style="color:var(--text-dim);font-size:13px;padding:10px 2px">No custom commands yet. Add one above! 👆</p>'
       return
     }
 
@@ -2312,13 +2630,13 @@ async function loadCustomCommands() {
         const cmdIndex = window.ccRenderedCommands.push(c) - 1
         const desc = c.description ? escapeHtml(c.description) : '<span style="color:var(--text-dim);font-style:italic">—</span>'
         return `
-          <tr class="list-row">
-            <td style="padding:10px 12px;white-space:nowrap">
-              <code style="background:var(--surface2);padding:2px 8px;border-radius:4px;color:var(--green);font-size:12px">${escapeHtml(c.trigger)}</code>
+          <tr>
+            <td style="white-space:nowrap">
+              <span class="cc-trigger-chip">${escapeHtml(c.trigger)}</span>
             </td>
-            <td style="padding:10px 12px;color:var(--text-dim)">${desc}</td>
-            <td style="padding:10px 12px;text-align:right;white-space:nowrap;position:relative">
-              <select class="input" style="min-width:130px;height:34px;padding:4px 8px" onchange="handleCcActionSelect(this, ${cmdIndex})">
+            <td style="color:var(--text-dim)">${desc}</td>
+            <td style="text-align:right;white-space:nowrap;position:relative">
+              <select class="cc-action-select" onchange="handleCcActionSelect(this, ${cmdIndex})">
                 <option value="">Select</option>
                 <option value="view">👁 View</option>
                 <option value="edit">✏️ Edit</option>
@@ -2329,18 +2647,18 @@ async function loadCustomCommands() {
       }).join('')
 
       return `
-        <div class="list-frame" style="margin-bottom:14px;overflow:hidden">
-          <div class="list-head">
-            <span style="font-size:13px;font-weight:700">📁 ${escapeHtml(category)}</span>
+        <div class="cc-list-card">
+          <div class="cc-list-head">
+            <span class="cc-list-head-title">📁 ${escapeHtml(category)}</span>
             <span class="badge badge-yellow">${grouped[category].length} command${grouped[category].length !== 1 ? 's' : ''}</span>
           </div>
-          <div style="overflow-x:auto;position:relative">
-            <table class="list-table" style="width:100%;border-collapse:collapse;font-size:13px">
+          <div style="overflow-x:auto">
+            <table class="cc-list-table">
               <thead>
-                <tr class="list-head-row">
-                  <th style="text-align:left;padding:8px 12px;color:var(--text-dim);font-weight:600;white-space:nowrap">Trigger</th>
-                  <th style="text-align:left;padding:8px 12px;color:var(--text-dim);font-weight:600">Description</th>
-                  <th style="padding:8px 12px;color:var(--text-dim);font-weight:600;white-space:nowrap">Action</th>
+                <tr>
+                  <th style="white-space:nowrap">Trigger</th>
+                  <th>Description</th>
+                  <th style="white-space:nowrap;text-align:right">Action</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
