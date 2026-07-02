@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 const yts = require('yt-search');
 const ytdl = require('ytdl-core');
 const { toAudio } = require('../lib/converter');
@@ -320,10 +321,11 @@ async function ytmp3Command(sock, chatId, message) {
                 console.log('[YTMP3] Trying yt-dlp...');
                 const res = await ytdlp.downloadAudio(videoUrl);
                 const buf = fs.readFileSync(res.filePath);
+                const fileExt = path.extname(res.filePath || '').toLowerCase();
                 ytdlp.cleanup(res.dir);
                 if (buf && buf.length > 1024) {
                     audioBuffer = buf;
-                    alreadyMp3 = true;
+                    alreadyMp3 = fileExt === '.mp3';
                     console.log(`[YTMP3] Success via yt-dlp (${(buf.length / 1024 / 1024).toFixed(2)} MB)`);
                 }
             } catch (err) {
@@ -360,13 +362,17 @@ async function ytmp3Command(sock, chatId, message) {
 
         /* ── Detect format & convert to MP3 if needed ── */
         let finalBuffer = audioBuffer;
+        let outputExt = 'mp3';
+        let outputMime = 'audio/mpeg';
         if (!alreadyMp3) {
-            const { ext } = detectFormat(audioBuffer);
+            const detected = detectFormat(audioBuffer);
             try {
-                finalBuffer = await ensureMp3(audioBuffer, ext);
+                finalBuffer = await ensureMp3(audioBuffer, detected.ext);
             } catch (convErr) {
-                console.log(`[YTMP3] Conversion failed (${ext}→mp3): ${convErr.message}. Sending original.`);
+                console.log(`[YTMP3] Conversion failed (${detected.ext}→mp3): ${convErr.message}. Sending original.`);
                 finalBuffer = audioBuffer;
+                outputExt = detected.ext;
+                outputMime = detected.mime;
             }
         }
 
@@ -374,8 +380,8 @@ async function ytmp3Command(sock, chatId, message) {
 
         await sock.sendMessage(chatId, {
             audio: finalBuffer,
-            mimetype: 'audio/mpeg',
-            fileName: `${safeName}.mp3`,
+            mimetype: outputMime,
+            fileName: `${safeName}.${outputExt}`,
             ptt: false
         }, { quoted: message });
 
