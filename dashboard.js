@@ -181,6 +181,13 @@ function normalizeCommandCategory(value) {
     return raw.slice(0, 32);
 }
 
+function isLiveSocketConnected(sock) {
+    if (!sock || typeof sock.sendMessage !== 'function' || !sock.user) return false
+    const wsState = sock.ws && typeof sock.ws.readyState === 'number' ? sock.ws.readyState : null
+    if (wsState === null) return true
+    return wsState === 1
+}
+
 function getGroupNamesFromStore() {
     const map = new Map()
     try {
