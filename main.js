@@ -122,6 +122,7 @@ const { reminiCommand } = require('./commands/remini');
 const { igsCommand } = require('./commands/igs');
 const { anticallCommand, readState: readAnticallState } = require('./commands/anticall');
 const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/pmblocker');
+const pairCommand = require('./commands/pair');
 const settingsCommand = require('./commands/settings');
 const setTimezoneCommand = require('./commands/settimezone');
 const scheduleCommand = require('./commands/schedule');
@@ -643,6 +644,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 }
                 break;
             case userMessage === '.unmute':
+                if (isGroup && !isSenderAdmin && !message.key.fromMe) {
+                    await sock.sendMessage(chatId, { text: 'Sorry, only group admins can use this command.', ...channelInfo }, { quoted: message });
+                    break;
+                }
                 await unmuteCommand(sock, chatId, senderId);
                 break;
             case userMessage.startsWith('.ban'):
@@ -764,6 +769,13 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 break;
             case userMessage === '.twilio':
                 await twilioCommand(sock, chatId, message);
+                break;
+            case userMessage.startsWith('.pair'):
+                {
+                    const pairArgs = rawText.slice(5).trim();
+                    await pairCommand(sock, chatId, message, pairArgs);
+                }
+                commandExecuted = true;
                 break;
             case userMessage === '.tagall':
                 await tagAllCommand(sock, chatId, senderId, message);

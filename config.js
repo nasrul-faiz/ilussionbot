@@ -20,7 +20,8 @@ global.APIKeys = {
     'https://api.neoxr.my.id': 'yourkey',
     'https://violetics.pw': 'beta',
     'https://zenzapis.xyz': 'yourkey',
-    'https://api-fgmods.ddns.net': 'fg-dylux'
+    'https://api-fgmods.ddns.net': 'fg-dylux',
+    'rapidapi-ytmp3': process.env.RAPIDAPI_KEY || 'a0f1a50700msh9c1d94ef9001a29p1d46afjsn2aa8b6c3a6c5'
 };
 
 module.exports = {

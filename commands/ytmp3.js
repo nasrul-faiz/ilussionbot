@@ -118,7 +118,9 @@ async function apiY2Mate(url) {
 }
 
 async function apiRapidYt(url) {
-    const r = await retry(() => axios.get(`https://youtube-mp36.p.rapidapi.com/dl?id=${extractId(url)}`, { ...AXIOS_OPT, headers: { ...AXIOS_OPT.headers, 'X-RapidAPI-Host': 'youtube-mp36.p.rapidapi.com', 'X-RapidAPI-Key': 'a0f1a50700msh9c1d94ef9001a29p1d46afjsn2aa8b6c3a6c5' } }));
+    const rapidKey = (global.APIKeys && global.APIKeys['rapidapi-ytmp3']) || process.env.RAPIDAPI_KEY || '';
+    if (!rapidKey) throw new Error('RapidYt: no API key configured');
+    const r = await retry(() => axios.get(`https://youtube-mp36.p.rapidapi.com/dl?id=${extractId(url)}`, { ...AXIOS_OPT, headers: { ...AXIOS_OPT.headers, 'X-RapidAPI-Host': 'youtube-mp36.p.rapidapi.com', 'X-RapidAPI-Key': rapidKey } }));
     if (r?.data?.status === 'ok' && r.data.link) return { dl: r.data.link, title: r.data.title };
     throw new Error('RapidYt: no link');
 }

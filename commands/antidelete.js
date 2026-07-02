@@ -223,8 +223,13 @@ async function handleMessageRevocation(sock, revocationMessage) {
         const senderName = sender.split('@')[0];
         const groupName = original.group ? (await sock.groupMetadata(original.group)).subject : '';
 
+        let reportTimeZone = 'Asia/Kuala_Lumpur';
+        try {
+            const _settings = require('../settings');
+            if (_settings.timeZone) reportTimeZone = _settings.timeZone;
+        } catch (_) {}
         const time = new Date().toLocaleString('en-US', {
-            timeZone: 'Asia/Kolkata',
+            timeZone: reportTimeZone,
             hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit',
             day: '2-digit', month: '2-digit', year: 'numeric'
         });
