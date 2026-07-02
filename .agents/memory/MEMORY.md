@@ -1,0 +1,1 @@
+- [Dependency install quirks](dependency-install-quirks.md) — firewall-blocked transitive deps (protobufjs 6.8.8, jsonpath-plus 5.0.7) need npm overrides; zod needed by @jimp/types; clean-reinstall if npm install gets killed.
