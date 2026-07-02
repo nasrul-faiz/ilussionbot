@@ -80,6 +80,7 @@
   .brand { display: flex; align-items: center; gap: 10px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; color: var(--text); padding: 6px 6px 14px; }
   .brand-icon { width: 32px; height: 32px; padding: 6px; box-sizing: border-box; color: var(--green); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; flex-shrink: 0; cursor: pointer; }
   .side-label { font-size: 11px; font-weight: 500; color: var(--text-dim); padding: 8px 10px 6px; letter-spacing: .02em; white-space: nowrap; }
+  .side-label.top { padding-top: 2px; }
   .side-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
   .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: none; background: none; color: var(--text-dim); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; text-align: left; width: 100%; transition: background .12s, color .12s; white-space: nowrap; }
   .nav-item:hover { background: var(--surface2); color: var(--text); }
@@ -130,6 +131,45 @@
   .badge-yellow { background: rgba(234,179,8,.15); color: var(--yellow); }
   .badge-red { background: rgba(239,68,68,.15); color: var(--red); }
   .uptime { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+  .sidebar-status-wrap { margin: 2px 0 8px; }
+  .sidebar .status-card {
+    margin-bottom: 0;
+    padding: 14px;
+    gap: 12px;
+    align-items: flex-start;
+    flex-direction: row;
+  }
+  .sidebar .status-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+  .sidebar .status-badge {
+    width: 13px;
+    height: 13px;
+    right: 1px;
+    bottom: 1px;
+  }
+  .sidebar .status-name {
+    font-size: 14px;
+    line-height: 1.25;
+  }
+  .sidebar .status-number {
+    font-size: 12px;
+    margin-top: 3px;
+    word-break: break-all;
+  }
+  .sidebar .status-meta {
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .sidebar .status-meta-item {
+    font-size: 11px;
+  }
+  .sidebar .uptime {
+    margin-top: 6px;
+    font-size: 11px;
+  }
 
   /* Settings form */
   .form-group { margin-bottom: 16px; }
@@ -383,6 +423,22 @@
       <svg class="brand-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       <span class="brandtext">Ilussion Bot</span>
     </div>
+    <div class="side-label top">Bot Status</div>
+    <div class="sidebar-status-wrap">
+      <div class="status-card" id="statusCard">
+        <div class="status-avatar" id="statusAvatar">
+          <img id="profilePic" src="" alt="" style="display:none" onerror="this.style.display='none';document.getElementById('avatarEmoji').style.display=''" />
+          <span id="avatarEmoji">🤖</span>
+          <div class="status-badge" id="statusBadge"></div>
+        </div>
+        <div class="status-info">
+          <div class="status-name" id="statusName">Loading...</div>
+          <div class="status-number" id="statusNumber"></div>
+          <div class="status-meta" id="statusMeta"></div>
+          <div class="uptime" id="statusUptime"></div>
+        </div>
+      </div>
+    </div>
     <div class="side-label">Menu</div>
     <nav class="side-nav">
       <button class="nav-item active" onclick="showTab('settings', this)" title="Bot Setting"><span class="nav-emoji">⚙️</span> <span class="nav-label">Bot Setting</span></button>
@@ -401,22 +457,6 @@
   </aside>
   <main class="main">
 <div class="container">
-
-  <!-- Status Card -->
-  <div class="status-card" style="margin-bottom:16px" id="statusCard">
-    <div class="status-avatar" id="statusAvatar">
-      <img id="profilePic" src="" alt="" style="display:none" onerror="this.style.display='none';document.getElementById('avatarEmoji').style.display=''" />
-      <span id="avatarEmoji">🤖</span>
-      <div class="status-badge" id="statusBadge"></div>
-    </div>
-    <div class="status-info">
-      <div class="status-name" id="statusName">Loading...</div>
-      <div class="status-number" id="statusNumber"></div>
-      <div class="status-meta" id="statusMeta"></div>
-      <div class="uptime" id="statusUptime"></div>
-    </div>
-  </div>
-
   <!-- Stats row -->
 
   <!-- Settings Tab -->
