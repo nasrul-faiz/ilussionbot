@@ -388,7 +388,6 @@
       <button class="nav-item active" onclick="showTab('settings', this)" title="Bot Setting"><span class="nav-emoji">⚙️</span> <span class="nav-label">Bot Setting</span></button>
       <button class="nav-item" onclick="showTab('groupsettings', this)" title="Group Setting"><span class="nav-emoji">👥</span> <span class="nav-label">Group Setting</span></button>
       <button class="nav-item" onclick="showTab('schedules', this)" title="Schedules"><span class="nav-emoji">⏰</span> <span class="nav-label">Schedules</span></button>
-      <button class="nav-item" onclick="showTab('sendmessage', this)" title="Send Message"><span class="nav-emoji">✉️</span> <span class="nav-label">Send Message</span></button>
       <button class="nav-item" onclick="showTab('customcmds', this)" title="Custom Commands"><span class="nav-emoji">🤖</span> <span class="nav-label">Custom Commands</span></button>
       <button class="nav-item" onclick="showTab('commandlist', this)" title="Command List"><span class="nav-emoji">📚</span> <span class="nav-label">Command List</span></button>
     </nav>
@@ -572,49 +571,6 @@
         </div>
         <div id="bannedContent">
           <p style="color:var(--text-dim);font-size:13px">Loading...</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Logs Tab -->
-  <div id="tab-sendmessage" style="display:none">
-    <div class="grid grid-2" style="margin-bottom:16px">
-      <div class="card">
-        <div class="card-title">✉️ Send Message</div>
-        <div class="form-group">
-          <label>Target Type</label>
-          <select id="sendTargetType" onchange="toggleSendTargetInputs()">
-            <option value="group">Group</option>
-            <option value="private">Private Number</option>
-          </select>
-        </div>
-
-        <div class="form-group" id="sendGroupWrap">
-          <label>Group</label>
-          <select id="sendGroupSelect"></select>
-        </div>
-
-        <div class="form-group" id="sendPrivateWrap" style="display:none">
-          <label>Phone Number <span style="color:var(--text-dim)">(without + or spaces)</span></label>
-          <input type="text" id="sendPrivateInput" placeholder="60123456789" />
-        </div>
-
-        <div class="form-group">
-          <label>Message</label>
-          <textarea id="sendMessageText" rows="5" placeholder="Type your message..."></textarea>
-        </div>
-
-        <button class="btn btn-green" style="width:100%" onclick="sendDashboardMessage()">🚀 Send Now</button>
-        <div id="sendMessageResult" style="margin-top:10px;font-size:12px;color:var(--text-dim)">Ready to send.</div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">📌 Notes</div>
-        <div style="font-size:13px;color:var(--text-dim);line-height:1.8">
-          <div>• Pastikan bot status <b style="color:var(--text)">Connected</b> sebelum menghantar.</div>
-          <div>• Untuk private chat, guna nombor antarabangsa tanpa simbol.</div>
-          <div>• Message akan dihantar terus oleh akaun WhatsApp bot.</div>
         </div>
       </div>
     </div>
@@ -1001,10 +957,6 @@ function showTab(name, btn) {
   closeSidebar()
   if (name === 'customcmds') loadCustomCommands()
   if (name === 'schedules') loadSchedules(true)
-  if (name === 'sendmessage') {
-    toggleSendTargetInputs()
-    loadSendGroups()
-  }
   if (name === 'groupsettings') {
     loadFeatures()
     loadGroups()
@@ -1413,74 +1365,6 @@ async function loadGroups() {
       </div>`
   } catch(e) {
     el.innerHTML = '<p style="color:var(--red);font-size:13px">Failed to load groups.</p>'
-  }
-}
-
-// ── Send Message ─────────────────────────────────────────────────────────────
-let sendGroupCache = []
-
-function toggleSendTargetInputs() {
-  const type = document.getElementById('sendTargetType')?.value || 'group'
-  const groupWrap = document.getElementById('sendGroupWrap')
-  const privateWrap = document.getElementById('sendPrivateWrap')
-  if (groupWrap) groupWrap.style.display = type === 'group' ? '' : 'none'
-  if (privateWrap) privateWrap.style.display = type === 'private' ? '' : 'none'
-}
-
-async function loadSendGroups() {
-  const sel = document.getElementById('sendGroupSelect')
-  if (!sel) return
-  sel.innerHTML = '<option value="">Loading groups...</option>'
-  try {
-    const groups = await fetch('/api/groups').then(r => r.json())
-    sendGroupCache = Array.isArray(groups) ? groups : []
-    if (!sendGroupCache.length) {
-      sel.innerHTML = '<option value="">No groups available</option>'
-      return
-    }
-    sel.innerHTML = sendGroupCache.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)} (${escapeHtml(g.id)})</option>`).join('')
-  } catch (_) {
-    sel.innerHTML = '<option value="">Failed to load groups</option>'
-  }
-}
-
-async function sendDashboardMessage() {
-  const type = document.getElementById('sendTargetType')?.value || 'group'
-  const groupId = document.getElementById('sendGroupSelect')?.value || ''
-  const privateNumber = (document.getElementById('sendPrivateInput')?.value || '').trim()
-  const message = (document.getElementById('sendMessageText')?.value || '').trim()
-  const resultEl = document.getElementById('sendMessageResult')
-
-  const target = type === 'group' ? groupId : privateNumber
-  if (!target) {
-    showToast(type === 'group' ? 'Please select a group.' : 'Please enter a phone number.', 'error')
-    return
-  }
-  if (!message) {
-    showToast('Message cannot be empty.', 'error')
-    return
-  }
-
-  if (resultEl) resultEl.textContent = 'Sending message...'
-  try {
-    const res = await fetch('/api/send-message', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ target, message })
-    }).then(r => r.json())
-
-    if (!res.success) {
-      if (resultEl) resultEl.innerHTML = `<span style="color:var(--red)">Failed: ${escapeHtml(res.error || 'Unknown error')}</span>`
-      showToast(res.error || 'Failed to send message.', 'error')
-      return
-    }
-
-    if (resultEl) resultEl.innerHTML = `<span style="color:var(--green)">Sent to ${escapeHtml(res.chatId || target)}</span>`
-    document.getElementById('sendMessageText').value = ''
-    showToast('Message sent successfully.')
-  } catch (_) {
-    if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">Network error while sending message.</span>'
-    showToast('Network error', 'error')
   }
 }
 
@@ -2629,7 +2513,6 @@ document.addEventListener('DOMContentLoaded', initDropZones)
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme(getStoredTheme())
   toggleMediaFields()
-  toggleSendTargetInputs()
 })
 
 async function addCustomCommand() {

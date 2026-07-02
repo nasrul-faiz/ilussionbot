@@ -181,26 +181,6 @@ function normalizeCommandCategory(value) {
     return raw.slice(0, 32);
 }
 
-function normalizeChatTarget(value) {
-    const raw = String(value || '').trim()
-    if (!raw) return null
-
-    if (raw.endsWith('@g.us') || raw.endsWith('@s.whatsapp.net') || raw.endsWith('@lid')) {
-        return raw
-    }
-
-    const digits = raw.replace(/\D/g, '')
-    if (digits.length < 6) return null
-    return `${digits}@s.whatsapp.net`
-}
-
-function isLiveSocketConnected(sock) {
-    if (!sock || typeof sock.sendMessage !== 'function' || !sock.user) return false
-    const wsState = sock.ws && typeof sock.ws.readyState === 'number' ? sock.ws.readyState : null
-    if (wsState === null) return true
-    return wsState === 1
-}
-
 function getGroupNamesFromStore() {
     const map = new Map()
     try {
@@ -1021,42 +1001,6 @@ app.post('/api/schedules', (req, res) => {
         res.json({ success: true, schedule: { ...result.schedule, nextRunText: formatDateTime(result.schedule.nextRunAt) } })
     } catch (err) {
         res.status(500).json({ success: false, error: err.message })
-    }
-})
-
-// ── API: Send Message (manual from dashboard) ──────────────────────────────
-app.post('/api/send-message', async (req, res) => {
-    try {
-        const { target, message } = req.body || {}
-        const text = String(message || '').trim()
-        const chatId = normalizeChatTarget(target)
-
-        if (!chatId) {
-            return res.status(400).json({
-                success: false,
-                error: 'Target chat tidak sah. Guna nombor telefon atau chat ID yang betul.',
-            })
-        }
-
-        if (!text) {
-            return res.status(400).json({
-                success: false,
-                error: 'Mesej tidak boleh kosong.',
-            })
-        }
-
-        const sock = global.botSocket
-        if (!isLiveSocketConnected(sock)) {
-            return res.status(503).json({
-                success: false,
-                error: 'Bot belum connected ke WhatsApp. Sila sambungkan session dahulu.',
-            })
-        }
-
-        await sock.sendMessage(chatId, { text })
-        return res.json({ success: true, chatId, message: 'Mesej berjaya dihantar.' })
-    } catch (err) {
-        return res.status(500).json({ success: false, error: err.message })
     }
 })
 
