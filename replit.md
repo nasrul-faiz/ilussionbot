@@ -42,6 +42,7 @@ Edit `config.js` to configure API keys for external services.
 ## Runtime Notes
 
 - Node.js 20+ required (Baileys v7 dependency)
+- `yt-dlp` (system package) is the primary engine for `.ytmp3`/`.ytmp4` — self-hosted downloads via `lib/ytdlp.js`, with the third-party APIs kept as fallback. Requires `ffmpeg` (present).
 - `gtts` package is stubbed (blocked by security policy; TTS commands return an error)
 - `sharp` native module is rebuilt at startup if needed
 - `express` and `multer` required for dashboard (installed in node_modules)

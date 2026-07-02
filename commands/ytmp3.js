@@ -1,6 +1,8 @@
 const axios = require('axios');
+const fs = require('fs');
 const yts = require('yt-search');
 const { toAudio } = require('../lib/converter');
+const ytdlp = require('../lib/ytdlp');
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 const AXIOS_OPT = { timeout: 60000, headers: { 'User-Agent': UA, 'Accept': 'application/json, */*' } };
@@ -269,22 +271,43 @@ async function ytmp3Command(sock, chatId, message) {
 
         /* ── Try providers in sequence ── */
         let audioBuffer = null;
+        let alreadyMp3 = false;
 
-        for (const provider of PROVIDERS) {
+        /* Primary engine: yt-dlp (self-hosted, most reliable, best quality) */
+        if (ytdlp.isAvailable()) {
             try {
-                console.log(`[YTMP3] Trying ${provider.name}...`);
-                const data = await provider.fn(videoUrl);
-                if (!data?.dl) continue;
-
-                const buf = await downloadBuffer(data.dl);
+                console.log('[YTMP3] Trying yt-dlp...');
+                const res = await ytdlp.downloadAudio(videoUrl);
+                const buf = fs.readFileSync(res.filePath);
+                ytdlp.cleanup(res.dir);
                 if (buf && buf.length > 1024) {
                     audioBuffer = buf;
-                    if (data.title && data.title !== 'Unknown') videoTitle = data.title;
-                    console.log(`[YTMP3] Success via ${provider.name} (${(buf.length / 1024 / 1024).toFixed(2)} MB)`);
-                    break;
+                    alreadyMp3 = true;
+                    console.log(`[YTMP3] Success via yt-dlp (${(buf.length / 1024 / 1024).toFixed(2)} MB)`);
                 }
             } catch (err) {
-                console.log(`[YTMP3] ${provider.name} failed: ${err.message}`);
+                console.log(`[YTMP3] yt-dlp failed: ${err.message}`);
+            }
+        }
+
+        /* Fallback: third-party API providers */
+        if (!audioBuffer) {
+            for (const provider of PROVIDERS) {
+                try {
+                    console.log(`[YTMP3] Trying ${provider.name}...`);
+                    const data = await provider.fn(videoUrl);
+                    if (!data?.dl) continue;
+
+                    const buf = await downloadBuffer(data.dl);
+                    if (buf && buf.length > 1024) {
+                        audioBuffer = buf;
+                        if (data.title && data.title !== 'Unknown') videoTitle = data.title;
+                        console.log(`[YTMP3] Success via ${provider.name} (${(buf.length / 1024 / 1024).toFixed(2)} MB)`);
+                        break;
+                    }
+                } catch (err) {
+                    console.log(`[YTMP3] ${provider.name} failed: ${err.message}`);
+                }
             }
         }
 
@@ -295,13 +318,15 @@ async function ytmp3Command(sock, chatId, message) {
         }
 
         /* ── Detect format & convert to MP3 if needed ── */
-        const { ext } = detectFormat(audioBuffer);
-        let finalBuffer;
-        try {
-            finalBuffer = await ensureMp3(audioBuffer, ext);
-        } catch (convErr) {
-            console.log(`[YTMP3] Conversion failed (${ext}→mp3): ${convErr.message}. Sending original.`);
-            finalBuffer = audioBuffer;
+        let finalBuffer = audioBuffer;
+        if (!alreadyMp3) {
+            const { ext } = detectFormat(audioBuffer);
+            try {
+                finalBuffer = await ensureMp3(audioBuffer, ext);
+            } catch (convErr) {
+                console.log(`[YTMP3] Conversion failed (${ext}→mp3): ${convErr.message}. Sending original.`);
+                finalBuffer = audioBuffer;
+            }
         }
 
         const safeName = sanitizeTitle(videoTitle, 'audio').replace(/[^\w\s\-()]/g, '').trim() || 'audio';

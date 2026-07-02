@@ -1,6 +1,65 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 const yts = require('yt-search');
 const ytdl = require('ytdl-core');
+const ytdlp = require('../lib/ytdlp');
+
+const TEMP_DIR = path.join(__dirname, '../temp');
+const MAX_INLINE_VIDEO_MB = 100;
+
+function assertSafeRemoteUrl(url) {
+    let parsed;
+    try { parsed = new URL(url); } catch (_) { throw new Error('invalid download URL'); }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new Error('unsupported URL scheme');
+    }
+    const host = parsed.hostname.toLowerCase();
+    const isPrivate =
+        host === 'localhost' ||
+        /^127\./.test(host) ||
+        /^10\./.test(host) ||
+        /^192\.168\./.test(host) ||
+        /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+        /^169\.254\./.test(host) ||
+        host === '0.0.0.0' ||
+        host === '::1' ||
+        host.endsWith('.local') ||
+        host.endsWith('.internal');
+    if (isPrivate) throw new Error('blocked private/internal host');
+}
+
+async function fetchToFile(url) {
+    assertSafeRemoteUrl(url);
+    if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
+    const dir = path.join(TEMP_DIR, 'vid_' + crypto.randomBytes(6).toString('hex'));
+    fs.mkdirSync(dir, { recursive: true });
+    const filePath = path.join(dir, 'out.mp4');
+    try {
+        const res = await axios.get(url, {
+            responseType: 'stream',
+            timeout: 180000,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            headers: AXIOS_DEFAULTS.headers
+        });
+        await new Promise((resolve, reject) => {
+            const writer = fs.createWriteStream(filePath);
+            res.data.pipe(writer);
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+            res.data.on('error', reject);
+        });
+        if (!fs.existsSync(filePath) || fs.statSync(filePath).size < 1024) {
+            throw new Error('downloaded file is empty');
+        }
+        return { filePath, dir };
+    } catch (e) {
+        try { fs.rmSync(dir, { recursive: true, force: true }); } catch (_) {}
+        throw e;
+    }
+}
 
 const AXIOS_DEFAULTS = {
     timeout: 60000,
@@ -243,6 +302,40 @@ async function videoCommand(sock, chatId, message) {
             return await sock.sendMessage(chatId, { text: '❌ This is not a valid YouTube link.' }, { quoted: message });
         }
 
+        const buildCaption = (title) => [
+            `*${sanitizeTitle(title || videoTitle || 'Video')}*`,
+            videoDuration ? `⏱ ${videoDuration}` : '',
+            '',
+            '> *_Downloaded by Knight Bot MD_*'
+        ].filter(Boolean).join('\n');
+        const buildFileName = (title) => `${sanitizeTitle(title || videoTitle || 'video').replace(/[^\w\s-]/g, '').trim() || 'video'}.mp4`;
+
+        // Send a local file as video (or document if large), then clean up.
+        const sendLocalVideo = async (filePath, title) => {
+            const sizeMB = fs.statSync(filePath).size / 1024 / 1024;
+            const payload = sizeMB > MAX_INLINE_VIDEO_MB
+                ? { document: { url: filePath }, mimetype: 'video/mp4', fileName: buildFileName(title), caption: buildCaption(title) }
+                : { video: { url: filePath }, mimetype: 'video/mp4', fileName: buildFileName(title), caption: buildCaption(title) };
+            await sock.sendMessage(chatId, payload, { quoted: message });
+        };
+
+        // Primary engine: yt-dlp (self-hosted, most reliable, best quality)
+        if (ytdlp.isAvailable()) {
+            let dir = null;
+            try {
+                console.log('[VIDEO] Trying yt-dlp...');
+                const res = await ytdlp.downloadVideo(videoUrl, { maxHeight: 720 });
+                dir = res.dir;
+                await sendLocalVideo(res.filePath, videoTitle);
+                ytdlp.cleanup(dir);
+                console.log('[VIDEO] Success via yt-dlp');
+                return;
+            } catch (err) {
+                console.log('[VIDEO] yt-dlp failed:', err.message);
+                if (dir) ytdlp.cleanup(dir);
+            }
+        }
+
         // Try multiple APIs with fallback chain, then fall back to direct extraction.
         let videoData;
         let downloadSuccess = false;
@@ -281,18 +374,27 @@ async function videoCommand(sock, chatId, message) {
             throw new Error('All download sources failed. The content may be unavailable or blocked in your region.');
         }
 
-        // Send video directly using the download URL
-        await sock.sendMessage(chatId, {
-            video: { url: videoData.download || videoData.dl || videoData.url },
-            mimetype: 'video/mp4',
-            fileName: `${sanitizeTitle(videoData.title || videoTitle || 'video').replace(/[^\w\s-]/g, '').trim() || 'video'}.mp4`,
-            caption: [
-                `*${sanitizeTitle(videoData.title || videoTitle || 'Video')}*`,
-                videoDuration ? `⏱ ${videoDuration}` : '',
-                '',
-                '> *_Downloaded by Knight Bot MD_*'
-            ].filter(Boolean).join('\n')
-        }, { quoted: message });
+        const remoteUrl = videoData.download || videoData.dl || videoData.url;
+
+        // Buffer the provider's URL to disk first (far more reliable than making
+        // WhatsApp fetch a short-lived remote URL). Fall back to the raw URL only
+        // if the download itself fails.
+        let dlDir = null;
+        try {
+            const dl = await fetchToFile(remoteUrl);
+            dlDir = dl.dir;
+            await sendLocalVideo(dl.filePath, videoData.title);
+        } catch (dlErr) {
+            console.log('[VIDEO] File buffering failed, sending remote URL:', dlErr.message);
+            await sock.sendMessage(chatId, {
+                video: { url: remoteUrl },
+                mimetype: 'video/mp4',
+                fileName: buildFileName(videoData.title),
+                caption: buildCaption(videoData.title)
+            }, { quoted: message });
+        } finally {
+            if (dlDir) { try { fs.rmSync(dlDir, { recursive: true, force: true }); } catch (_) {} }
+        }
 
 
     } catch (error) {

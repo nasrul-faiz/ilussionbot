@@ -1,1 +1,1 @@
-- [Dependency install quirks](dependency-install-quirks.md) — firewall-blocked transitive deps (protobufjs 6.8.8, jsonpath-plus 5.0.7) need npm overrides; zod needed by @jimp/types; clean-reinstall if npm install gets killed.
+- [YouTube downloader engine](yt-downloader.md) — `.ytmp3`/`.ytmp4` use yt-dlp (system pkg) as primary, third-party APIs as fallback; yt-dlp works from this server's IP.
