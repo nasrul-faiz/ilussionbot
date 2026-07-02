@@ -194,6 +194,13 @@ function normalizeChatTarget(value) {
     return `${digits}@s.whatsapp.net`
 }
 
+function isLiveSocketConnected(sock) {
+    if (!sock || typeof sock.sendMessage !== 'function' || !sock.user) return false
+    const wsState = sock.ws && typeof sock.ws.readyState === 'number' ? sock.ws.readyState : null
+    if (wsState === null) return true
+    return wsState === 1
+}
+
 function getGroupNamesFromStore() {
     const map = new Map()
     try {
@@ -347,8 +354,10 @@ app.get('/api/status', async (req, res) => {
     const warnings = readJSON('./data/warnings.json', {})
     const messageCount = readJSON('./data/messageCount.json', {})
     const qrState = readJSON('./data/qrState.json', {})
-    const connected = !!(creds && creds.me && creds.registered) || qrState.status === 'connected'
-    const account = connected ? (creds?.me || null) : null
+    const sock = global.botSocket
+    const sessionReady = !!(creds && creds.me && creds.registered)
+    const connected = isLiveSocketConnected(sock)
+    const account = connected ? (sock?.user || creds?.me || null) : null
     const botInfo = readJSON('./data/botInfo.json', {})
 
     const totalMessages = Object.values(messageCount).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0)
@@ -381,6 +390,7 @@ app.get('/api/status', async (req, res) => {
 
     res.json({
         connected,
+        sessionReady,
         account,
         profilePic,
         uptime: process.uptime(),
@@ -1036,7 +1046,7 @@ app.post('/api/send-message', async (req, res) => {
         }
 
         const sock = global.botSocket
-        if (!sock || typeof sock.sendMessage !== 'function' || !sock.user) {
+        if (!isLiveSocketConnected(sock)) {
             return res.status(503).json({
                 success: false,
                 error: 'Bot belum connected ke WhatsApp. Sila sambungkan session dahulu.',
