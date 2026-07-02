@@ -13,7 +13,14 @@ const chatMemory = {
 // Load user group data
 function loadUserGroupData() {
     try {
-        return JSON.parse(fs.readFileSync(USER_GROUP_DATA));
+        const parsed = JSON.parse(fs.readFileSync(USER_GROUP_DATA, 'utf8'));
+        if (!parsed || typeof parsed !== 'object') {
+            return { groups: [], chatbot: {} };
+        }
+        return {
+            groups: Array.isArray(parsed.groups) ? parsed.groups : [],
+            chatbot: parsed.chatbot && typeof parsed.chatbot === 'object' ? parsed.chatbot : {}
+        };
     } catch (error) {
         console.error('❌ Error loading user group data:', error.message);
         return { groups: [], chatbot: {} };
@@ -184,21 +191,22 @@ async function handleChatbotCommand(sock, chatId, message, match) {
 
 async function handleChatbotResponse(sock, chatId, message, userMessage, senderId) {
     const data = loadUserGroupData();
+    if (!data.chatbot || typeof data.chatbot !== 'object') return;
     if (!data.chatbot[chatId]) return;
 
     try {
         // Get bot's ID - try multiple formats
-        const botId = sock.user.id;
-        const botNumber = botId.split(':')[0];
-        const botLid = sock.user.lid; // Get the actual LID from sock.user
+        const botId = sock.user?.id;
+        const botNumber = botId ? botId.split(':')[0] : '';
+        const botLid = sock.user?.lid; // Get the actual LID from sock.user when available
         const botJids = [
             botId,
-            `${botNumber}@s.whatsapp.net`,
-            `${botNumber}@whatsapp.net`,
-            `${botNumber}@lid`,
-            botLid, // Add the actual LID
-            `${botLid.split(':')[0]}@lid` // Add LID without session part
-        ];
+            botNumber ? `${botNumber}@s.whatsapp.net` : null,
+            botNumber ? `${botNumber}@whatsapp.net` : null,
+            botNumber ? `${botNumber}@lid` : null,
+            botLid, // Add the actual LID when available
+            botLid ? `${botLid.split(':')[0]}@lid` : null // Add LID without session part
+        ].filter(Boolean);
 
         // Check for mentions and replies
         let isBotMentioned = false;

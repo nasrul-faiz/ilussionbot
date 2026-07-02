@@ -188,6 +188,45 @@ function isLiveSocketConnected(sock) {
     return wsState === 1
 }
 
+function extractPhoneFromAccount(account) {
+    if (!account || typeof account !== 'object') return ''
+    const candidates = [account.id, account.jid, account.lid]
+    for (const rawValue of candidates) {
+        const raw = String(rawValue || '').trim()
+        if (!raw) continue
+        const base = raw.includes(':') ? raw.split(':')[0] : raw.split('@')[0]
+        const digits = base.replace(/\D/g, '')
+        if (digits) return digits
+    }
+    return ''
+}
+
+function extractNameFromAccount(account) {
+    if (!account || typeof account !== 'object') return ''
+    const candidates = [account.name, account.notify, account.pushName, account.verifiedName]
+    for (const raw of candidates) {
+        const name = String(raw || '').trim()
+        if (name) return name
+    }
+    return ''
+}
+
+function buildAccountInfo(account) {
+    if (!account || typeof account !== 'object') return null
+    const id = String(account.id || account.jid || account.lid || '').trim()
+    const lid = String(account.lid || '').trim()
+    const phone = extractPhoneFromAccount(account)
+    const name = extractNameFromAccount(account)
+    if (!id && !lid && !phone && !name) return null
+    return {
+        ...account,
+        id,
+        lid,
+        phone,
+        name,
+    }
+}
+
 function getGroupNamesFromStore() {
     const map = new Map()
     try {
@@ -284,6 +323,118 @@ function getGroupIdsFromMessageCount(messageCount) {
     return ids
 }
 
+function isGroupChatId(chatId) {
+    return typeof chatId === 'string' && chatId.endsWith('@g.us')
+}
+
+function isPersonalChatId(chatId) {
+    return typeof chatId === 'string' && (chatId.endsWith('@s.whatsapp.net') || chatId.endsWith('@lid'))
+}
+
+function isSchedulableChatId(chatId) {
+    return isGroupChatId(chatId) || isPersonalChatId(chatId)
+}
+
+function getPersonalNamesFromStore() {
+    const map = new Map()
+    try {
+        const store = readJSON('./baileys_store.json', {})
+        const chats = store && store.chats ? store.chats : {}
+
+        const pickName = (data) => {
+            if (!data || typeof data !== 'object') return ''
+            return String(
+                data.name || data.notify || data.pushName || data.verifiedName || data.short || ''
+            ).trim()
+        }
+
+        if (Array.isArray(chats)) {
+            for (const item of chats) {
+                const id = String(item?.id || item?.jid || '').trim()
+                if (!isPersonalChatId(id)) continue
+                const name = pickName(item)
+                if (name) map.set(id, name)
+            }
+        } else if (chats && typeof chats === 'object') {
+            for (const [id, data] of Object.entries(chats)) {
+                const key = String(id).trim()
+                if (isPersonalChatId(key)) {
+                    const name = pickName(data)
+                    if (name) map.set(key, name)
+                }
+
+                if (data && typeof data === 'object') {
+                    const itemId = String(data.id || data.jid || '').trim()
+                    if (!isPersonalChatId(itemId)) continue
+                    const itemName = pickName(data)
+                    if (itemName) map.set(itemId, itemName)
+                }
+            }
+        }
+
+        const contacts = store && store.contacts && typeof store.contacts === 'object' ? store.contacts : {}
+        for (const [id, data] of Object.entries(contacts)) {
+            const key = String(id).trim()
+            if (!isPersonalChatId(key)) continue
+            const name = String(
+                (data && (data.name || data.notify || data.pushName || data.verifiedName || data.short)) || ''
+            ).trim()
+            if (name) map.set(key, name)
+        }
+    } catch (_) {}
+    return map
+}
+
+function getPersonalIdsFromStore() {
+    const ids = new Set()
+    try {
+        const store = readJSON('./baileys_store.json', {})
+        const chats = store && store.chats ? store.chats : {}
+
+        if (Array.isArray(chats)) {
+            for (const item of chats) {
+                const id = String(item?.id || item?.jid || '').trim()
+                if (isPersonalChatId(id)) ids.add(id)
+            }
+        } else if (chats && typeof chats === 'object') {
+            for (const [id, data] of Object.entries(chats)) {
+                const key = String(id).trim()
+                if (isPersonalChatId(key)) ids.add(key)
+
+                if (data && typeof data === 'object') {
+                    const itemId = String(data.id || data.jid || '').trim()
+                    if (isPersonalChatId(itemId)) ids.add(itemId)
+                }
+            }
+        }
+
+        const contacts = store && store.contacts && typeof store.contacts === 'object' ? store.contacts : {}
+        for (const id of Object.keys(contacts)) {
+            const key = String(id).trim()
+            if (isPersonalChatId(key)) ids.add(key)
+        }
+    } catch (_) {}
+    return ids
+}
+
+function getPersonalIdsFromMessageCount(messageCount) {
+    const ids = new Set()
+    if (!messageCount || typeof messageCount !== 'object') return ids
+
+    for (const key of Object.keys(messageCount)) {
+        if (isPersonalChatId(key)) ids.add(key)
+    }
+
+    const nested = messageCount.messageCount
+    if (nested && typeof nested === 'object') {
+        for (const key of Object.keys(nested)) {
+            if (isPersonalChatId(key)) ids.add(key)
+        }
+    }
+
+    return ids
+}
+
 const groupNameCache = new Map()
 const GROUP_NAME_CACHE_TTL_MS = 2 * 60 * 1000
 
@@ -344,7 +495,8 @@ app.get('/api/status', async (req, res) => {
     const sock = global.botSocket
     const sessionReady = !!(creds && creds.me && creds.registered)
     const connected = isLiveSocketConnected(sock)
-    const account = connected ? (sock?.user || creds?.me || null) : null
+    const accountRaw = sock?.user || creds?.me || null
+    const account = buildAccountInfo(accountRaw)
     const botInfo = readJSON('./data/botInfo.json', {})
 
     const totalMessages = Object.values(messageCount).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0)
@@ -379,6 +531,8 @@ app.get('/api/status', async (req, res) => {
         connected,
         sessionReady,
         account,
+        accountName: account?.name || settings.botName || 'Knight Bot',
+        accountPhone: account?.phone || '',
         profilePic,
         uptime: process.uptime(),
         version: settings.version || '3.0.7',
@@ -419,6 +573,7 @@ app.get('/api/settings', (req, res) => {
     res.json({
         botName: settings.botName,
         botOwner: settings.botOwner,
+        author: settings.author,
         ownerNumber: settings.ownerNumber,
         commandMode: settings.commandMode,
         timeZone: settings.timeZone,
@@ -442,6 +597,7 @@ app.post('/api/settings', (req, res) => {
         const {
             botName,
             botOwner,
+            author,
             ownerNumber,
             commandMode,
             commandReplyAsNormalMessage,
@@ -487,6 +643,7 @@ app.post('/api/settings', (req, res) => {
 
         if (botName !== undefined) replace('botName', botName)
         if (botOwner !== undefined) replace('botOwner', botOwner)
+        if (author !== undefined) replace('author', author)
         if (ownerNumber !== undefined) replace('ownerNumber', ownerNumber)
         if (commandMode !== undefined) replace('commandMode', commandMode)
         if (commandReplyAsNormalMessage !== undefined) replaceBoolean('commandReplyAsNormalMessage', commandReplyAsNormalMessage)
@@ -965,6 +1122,93 @@ app.get('/api/groups', async (req, res) => {
         }
         
         res.json(groups)
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message })
+    }
+})
+
+app.get('/api/chats', async (req, res) => {
+    try {
+        const creds = readJSON('./session/creds.json')
+        const qrState = readJSON('./data/qrState.json', {})
+        const connected = !!(creds && creds.me && creds.registered) || qrState.status === 'connected'
+        if (!connected) {
+            return res.json([])
+        }
+
+        const userGroupData = readJSON('./data/userGroupData.json', {})
+        const messageCount = readJSON('./data/messageCount.json', {})
+
+        const storeGroupNames = getGroupNamesFromStore()
+        const storeGroupIds = getGroupIdsFromStore()
+        const liveGroupNames = await getAllGroupNamesFromSocket()
+        const userGroupEntries = Object.entries(userGroupData || {})
+
+        for (const [id, name] of liveGroupNames.entries()) {
+            storeGroupNames.set(id, name)
+            storeGroupIds.add(id)
+        }
+
+        const storePersonalNames = getPersonalNamesFromStore()
+        const storePersonalIds = getPersonalIdsFromStore()
+
+        const groups = new Map()
+        const groupIds = new Set([
+            ...storeGroupIds,
+            ...getGroupIdsFromMessageCount(messageCount),
+            ...userGroupEntries.filter(([id]) => isGroupChatId(id)).map(([id]) => id),
+        ])
+
+        for (const chatId of groupIds) {
+            const fromUserData = userGroupData && userGroupData[chatId] && typeof userGroupData[chatId] === 'object'
+                ? userGroupData[chatId]
+                : {}
+            const name = String(
+                fromUserData.groupName || fromUserData.name || storeGroupNames.get(chatId) || 'Unknown Group'
+            ).trim() || 'Unknown Group'
+
+            groups.set(chatId, {
+                id: chatId,
+                type: 'group',
+                name,
+                messages: getTotalMessagesForChat(messageCount, chatId),
+            })
+        }
+
+        const personals = new Map()
+        const personalIds = new Set([
+            ...storePersonalIds,
+            ...getPersonalIdsFromMessageCount(messageCount),
+            ...userGroupEntries.filter(([id]) => isPersonalChatId(id)).map(([id]) => id),
+        ])
+
+        for (const chatId of personalIds) {
+            if (!isSchedulableChatId(chatId)) continue
+            const fromUserData = userGroupData && userGroupData[chatId] && typeof userGroupData[chatId] === 'object'
+                ? userGroupData[chatId]
+                : {}
+
+            const name = String(
+                fromUserData.name || fromUserData.pushName || fromUserData.notify || storePersonalNames.get(chatId) || 'Unknown Contact'
+            ).trim() || 'Unknown Contact'
+
+            personals.set(chatId, {
+                id: chatId,
+                type: 'personal',
+                name,
+                messages: getTotalMessagesForChat(messageCount, chatId),
+            })
+        }
+
+        const rows = [
+            ...Array.from(groups.values()),
+            ...Array.from(personals.values()),
+        ].sort((a, b) => {
+            if (a.type !== b.type) return a.type === 'group' ? -1 : 1
+            return Number(b.messages || 0) - Number(a.messages || 0)
+        })
+
+        res.json(rows)
     } catch (err) {
         res.status(500).json({ success: false, error: err.message })
     }

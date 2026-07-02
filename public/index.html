@@ -38,6 +38,18 @@
     --cc-button-row-border: rgba(255,255,255,.08);
     --cc-button-row-bg: rgba(0,0,0,.18);
     --cc-type-btn-active-bg: rgba(34,197,94,.16);
+    --top-nav-bg: var(--sidebar-panel-bg);
+    --top-nav-border: var(--sidebar-panel-border);
+    --sidebar-panel-bg: linear-gradient(165deg, rgba(24, 24, 27, .96), rgba(9, 9, 11, .94));
+    --sidebar-panel-border: rgba(63, 63, 70, .92);
+    --sidebar-panel-shadow: 12px 0 32px rgba(0, 0, 0, .55);
+    --sidebar-brand-bg: linear-gradient(135deg, rgba(34, 197, 94, .16), rgba(59, 130, 246, .10));
+    --sidebar-brand-border: rgba(63, 63, 70, .9);
+    --sidebar-label-line: rgba(82, 82, 91, .55);
+    --sidebar-nav-hover: rgba(39, 39, 42, .92);
+    --sidebar-nav-active: linear-gradient(90deg, rgba(34, 197, 94, .24), rgba(59, 130, 246, .18));
+    --sidebar-nav-active-border: rgba(34, 197, 94, .45);
+    --sidebar-status-bg: rgba(39, 39, 42, .86);
     --radius: 8px;
   }
   body[data-theme='light'] {
@@ -69,31 +81,227 @@
     --cc-button-row-border: rgba(15,23,42,.14);
     --cc-button-row-bg: rgba(148,163,184,.12);
     --cc-type-btn-active-bg: rgba(22,163,74,.16);
+    --top-nav-bg: var(--sidebar-panel-bg);
+    --top-nav-border: var(--sidebar-panel-border);
+    --sidebar-panel-bg: linear-gradient(165deg, rgba(255, 255, 255, .98), rgba(240, 244, 249, .95));
+    --sidebar-panel-border: rgba(203, 213, 225, .95);
+    --sidebar-panel-shadow: 10px 0 26px rgba(15, 23, 42, .10);
+    --sidebar-brand-bg: linear-gradient(135deg, rgba(22, 163, 74, .14), rgba(37, 99, 235, .08));
+    --sidebar-brand-border: rgba(203, 213, 225, .95);
+    --sidebar-label-line: rgba(148, 163, 184, .65);
+    --sidebar-nav-hover: rgba(241, 245, 249, .95);
+    --sidebar-nav-active: linear-gradient(90deg, rgba(22, 163, 74, .20), rgba(37, 99, 235, .12));
+    --sidebar-nav-active-border: rgba(22, 163, 74, .42);
+    --sidebar-status-bg: rgba(241, 245, 249, .92);
   }
   body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; font-size: 14px; -webkit-font-smoothing: antialiased; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 
   /* App shell + sidebar */
   .app { display: flex; min-height: 100dvh; }
-  .sidebar { width: 248px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); padding: 16px 12px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 2px; position: fixed; left: 0; top: 0; height: 100dvh; max-height: 100dvh; z-index: 200; transform: translateX(-260px); transition: transform .25s ease; overflow-x: hidden; overflow-y: auto; }
-  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 32px rgba(0,0,0,.6); }
-  .brand { display: flex; align-items: center; gap: 10px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; color: var(--text); padding: 6px 6px 14px; }
-  .brand-icon { width: 32px; height: 32px; padding: 6px; box-sizing: border-box; color: var(--green); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; flex-shrink: 0; cursor: pointer; }
-  .side-label { font-size: 11px; font-weight: 500; color: var(--text-dim); padding: 8px 10px 6px; letter-spacing: .02em; white-space: nowrap; }
-  .side-label.top { padding-top: 2px; }
-  .side-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: none; background: none; color: var(--text-dim); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; text-align: left; width: 100%; transition: background .12s, color .12s; white-space: nowrap; }
-  .nav-item:hover { background: var(--surface2); color: var(--text); }
-  .nav-item.active { background: var(--surface2); color: var(--text); }
-  .nav-emoji { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
-  .side-status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-dim); padding: 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+  .sidebar {
+    width: 252px;
+    flex-shrink: 0;
+    background: var(--sidebar-panel-bg);
+    border-right: 1px solid var(--sidebar-panel-border);
+    padding: 14px 12px calc(14px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    z-index: 320;
+    transform: translateX(-264px);
+    transition: transform .25s ease;
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-shadow: inset -1px 0 0 rgba(255,255,255,.03);
+  }
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--green), var(--blue), var(--lav));
+    opacity: .82;
+  }
+  .sidebar.open { transform: translateX(0); box-shadow: var(--sidebar-panel-shadow); }
+  .sidebar::-webkit-scrollbar { width: 7px; }
+  .sidebar::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--green) 35%, transparent); border-radius: 99px; }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid var(--sidebar-brand-border);
+    background: var(--sidebar-brand-bg);
+    margin-bottom: 6px;
+  }
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    padding: 7px;
+    box-sizing: border-box;
+    color: var(--green);
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green) 30%, var(--border));
+    border-radius: 10px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .brand-copy { display: flex; flex-direction: column; min-width: 0; }
+  .brandtext { font-weight: 700; font-size: 14px; color: var(--text); letter-spacing: .01em; }
+  .brand-sub { font-size: 11px; color: var(--text-dim); letter-spacing: .04em; text-transform: uppercase; margin-top: 1px; }
+  .side-label {
+    position: relative;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-dim);
+    padding: 8px 10px 6px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .side-label::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    left: 94px;
+    top: 50%;
+    height: 1px;
+    background: var(--sidebar-label-line);
+    transform: translateY(-50%);
+  }
+  .side-label.top { padding-top: 4px; }
+  .side-nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    width: 100%;
+    transition: background .18s, color .18s, border-color .18s, transform .18s;
+    white-space: nowrap;
+  }
+  .nav-item:hover {
+    background: var(--sidebar-nav-hover);
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--green) 26%, transparent);
+    transform: translateX(2px);
+  }
+  .nav-item.active {
+    background: var(--sidebar-nav-active);
+    color: var(--text);
+    border-color: var(--sidebar-nav-active-border);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 99px;
+    background: linear-gradient(180deg, var(--green), var(--blue));
+  }
+  .nav-emoji {
+    font-size: 14px;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--surface2) 80%, transparent);
+    flex-shrink: 0;
+  }
+  .side-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--sidebar-status-bg);
+    margin-top: 4px;
+  }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); animation: none; flex-shrink: 0; }
   .dot.online { background: var(--green); animation: pulse 2s infinite; }
-  .main { flex: 1; min-width: 0; overflow-x: hidden; width: 100%; }
-  /* FAB to open sidebar */
-  .menu-fab { position: fixed; top: 16px; left: 16px; right: auto; z-index: 100; width: 40px; height: 40px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, border-color .15s; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
-  .menu-fab:hover { background: var(--surface2); border-color: var(--green); }
-  .menu-fab svg { width: 22px; height: 22px; color: var(--green); }
+  .main { flex: 1; min-width: 0; width: 100%; overflow: visible; }
+  .top-nav {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 220;
+    border-bottom: 1px solid var(--top-nav-border);
+    background: var(--top-nav-bg);
+    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border) 65%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .top-nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 12px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .top-nav-left,
+  .top-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .top-nav-right {
+    margin-left: auto;
+  }
+  .top-nav-link {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: .15s ease;
+  }
+  .top-nav-link:hover {
+    color: var(--text);
+    border-color: var(--green);
+  }
+  .top-nav-link.active {
+    color: var(--text);
+    border-color: var(--green);
+    background: color-mix(in srgb, var(--green) 17%, var(--surface));
+  }
+  .menu-btn { width: 38px; height: 38px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, border-color .15s; }
+  .menu-btn:hover { background: var(--surface2); border-color: var(--green); }
+  .menu-btn svg { width: 20px; height: 20px; color: var(--green); }
 
   /* Layout */
   .container { max-width: 1100px; margin: 0 auto; padding: 28px 22px 44px; }
@@ -131,18 +339,26 @@
   .badge-yellow { background: rgba(234,179,8,.15); color: var(--yellow); }
   .badge-red { background: rgba(239,68,68,.15); color: var(--red); }
   .uptime { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
-  .sidebar-status-wrap { margin: 2px 0 8px; }
+  .sidebar-status-wrap { margin: 0 0 8px; }
   .sidebar .status-card {
     margin-bottom: 0;
-    padding: 14px;
+    padding: 13px;
     gap: 12px;
-    align-items: flex-start;
-    flex-direction: row;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    border-radius: 12px;
+    border-color: color-mix(in srgb, var(--green) 20%, var(--border));
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
   }
   .sidebar .status-avatar {
     width: 44px;
     height: 44px;
     font-size: 20px;
+  }
+  .sidebar .status-info {
+    width: 100%;
+    text-align: center;
   }
   .sidebar .status-badge {
     width: 13px;
@@ -158,10 +374,12 @@
     font-size: 12px;
     margin-top: 3px;
     word-break: break-all;
+    opacity: .9;
   }
   .sidebar .status-meta {
     gap: 6px;
     margin-top: 8px;
+    justify-content: center;
   }
   .sidebar .status-meta-item {
     font-size: 11px;
@@ -189,6 +407,13 @@
   .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
   .btn-outline:hover { border-color: var(--green); color: var(--green); }
   .btn-sm { padding: 5px 14px; font-size: 12px; }
+  .settings-hint { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+  .settings-note { margin-top: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface2) 82%, transparent); font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+  .settings-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--surface2) 72%, transparent); }
+  .settings-toggle strong { display: block; font-size: 13px; color: var(--text); margin-bottom: 3px; }
+  .settings-toggle span { display: block; font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .settings-toggle input { width: auto; min-width: 18px; height: 18px; accent-color: var(--green); }
+  .settings-textarea { min-height: 92px; resize: vertical; }
 
   /* Logs */
   .log-container { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; height: 320px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; }
@@ -335,8 +560,6 @@
     cursor: pointer;
   }
   .theme-toggle:hover { border-color: var(--green); color: var(--green); }
-  .sidebar-theme { padding: 8px 10px 6px; border-top: 1px solid var(--border); margin-top: 4px; }
-  .sidebar-theme .theme-toggle { width: 100%; margin: 0; }
   .action-select-delete {
     color: var(--red);
     font-weight: 600;
@@ -377,11 +600,15 @@
   }
 
   @media (max-width: 600px) {
+    .top-nav-inner {
+      padding: 10px 14px;
+      gap: 6px;
+    }
     .status-card { flex-direction: column; text-align: center; }
     .status-meta { justify-content: center; }
   }
   /* Dim overlay behind open sidebar */
-  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 199; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 319; }
   .sidebar-overlay.active { display: block; }
   .list-frame {
     border: 1px solid var(--list-card-border);
@@ -413,15 +640,14 @@
 <body>
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<!-- FAB: click WhatsApp icon to open sidebar -->
-<button class="menu-fab" onclick="openSidebar()" id="menuFab" title="Open menu">
-  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-</button>
 <div class="app">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <svg class="brand-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      <span class="brandtext">Ilussion Bot</span>
+      <div class="brand-copy">
+        <span class="brandtext">Ilussion Bot</span>
+        <span class="brand-sub">Control Panel</span>
+      </div>
     </div>
     <div class="side-label top">Bot Status</div>
     <div class="sidebar-status-wrap">
@@ -441,21 +667,30 @@
     </div>
     <div class="side-label">Menu</div>
     <nav class="side-nav">
-      <button class="nav-item active" onclick="showTab('settings', this)" title="Bot Setting"><span class="nav-emoji">⚙️</span> <span class="nav-label">Bot Setting</span></button>
-      <button class="nav-item" onclick="showTab('groupsettings', this)" title="Group Setting"><span class="nav-emoji">👥</span> <span class="nav-label">Group Setting</span></button>
-      <button class="nav-item" onclick="showTab('schedules', this)" title="Schedules"><span class="nav-emoji">⏰</span> <span class="nav-label">Schedules</span></button>
-      <button class="nav-item" onclick="showTab('customcmds', this)" title="Custom Commands"><span class="nav-emoji">🤖</span> <span class="nav-label">Custom Commands</span></button>
-      <button class="nav-item" onclick="showTab('commandlist', this)" title="Command List"><span class="nav-emoji">📚</span> <span class="nav-label">Command List</span></button>
+      <button class="nav-item active" data-tab="settings" onclick="showTab('settings', this)" title="Bot Setting"><span class="nav-emoji">⚙️</span> <span class="nav-label">Bot Setting</span></button>
+      <button class="nav-item" data-tab="groupsettings" onclick="showTab('groupsettings', this)" title="Group Setting"><span class="nav-emoji">👥</span> <span class="nav-label">Group Setting</span></button>
+      <button class="nav-item" data-tab="schedules" onclick="showTab('schedules', this)" title="Schedules"><span class="nav-emoji">⏰</span> <span class="nav-label">Schedules</span></button>
+      <button class="nav-item" data-tab="customcmds" onclick="showTab('customcmds', this)" title="Custom Commands"><span class="nav-emoji">🤖</span> <span class="nav-label">Custom Commands</span></button>
+      <button class="nav-item" data-tab="commandlist" onclick="showTab('commandlist', this)" title="Command List"><span class="nav-emoji">📚</span> <span class="nav-label">Command List</span></button>
     </nav>
     <div class="side-status">
       <div class="dot" id="navDot"></div>
       <span id="navStatusText" class="side-status-text">Checking...</span>
     </div>
-    <div class="sidebar-theme">
-      <button id="themeToggleBtn" class="theme-toggle" onclick="toggleTheme()" title="Switch light/dark mode">🌙 Dark</button>
-    </div>
   </aside>
   <main class="main">
+<header class="top-nav">
+  <div class="top-nav-inner">
+    <div class="top-nav-left">
+      <button class="menu-btn" onclick="openSidebar()" title="Open menu" aria-label="Open sidebar menu">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+      </button>
+    </div>
+    <div class="top-nav-right">
+      <button id="themeToggleBtn" class="theme-toggle" onclick="toggleTheme()" title="Switch light/dark mode">🌙 Dark</button>
+    </div>
+  </div>
+</header>
 <div class="container">
   <!-- Stats row -->
 
@@ -474,6 +709,10 @@
         <div class="form-group">
           <label>Bot Owner Name</label>
           <input type="text" id="botOwner" placeholder="Professor" />
+        </div>
+        <div class="form-group">
+          <label>Author / Sticker Credit</label>
+          <input type="text" id="author" placeholder="Professor" />
         </div>
         <div class="form-group">
           <label>Pack Name (Stickers)</label>
@@ -500,6 +739,13 @@
             <option value="private">Private — Owner only</option>
           </select>
         </div>
+        <div class="settings-toggle" style="margin-bottom:16px">
+          <div>
+            <strong>Reply command as normal message</strong>
+            <span>When enabled, command replies behave like regular chat messages instead of reply threads.</span>
+          </div>
+          <input type="checkbox" id="commandReplyAsNormalMessage" />
+        </div>
         <div class="form-group">
           <label>Timezone <span style="color:var(--text-dim)">(popular list)</span></label>
           <select id="timeZone">
@@ -520,6 +766,62 @@
         <div style="margin-top:24px">
           <button class="btn btn-green" onclick="saveSettings()" style="width:100%">💾 Save Settings</button>
           <p style="font-size:12px;color:var(--text-dim);margin-top:8px;text-align:center">Bot akan auto-restart selepas simpan settings.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+          Message Templates
+        </div>
+        <div class="form-group">
+          <label>Alive Message</label>
+          <textarea id="aliveMessage" class="settings-textarea" placeholder="What the bot should say when someone uses alive command..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Alive Media URL</label>
+          <input type="url" id="aliveMediaUrl" placeholder="https://example.com/banner.jpg" />
+        </div>
+        <div class="form-group">
+          <label>Alive Buttons</label>
+          <textarea id="aliveButtons" class="settings-textarea" placeholder='[{"buttonId":"ping","buttonText":"Ping"}]'></textarea>
+        </div>
+        <div class="form-group">
+          <label>Menu Message</label>
+          <textarea id="menuMessage" class="settings-textarea" placeholder="Custom menu text shown to users..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Menu Media URL</label>
+          <input type="url" id="menuMediaUrl" placeholder="https://example.com/menu.jpg" />
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Menu Buttons</label>
+          <textarea id="menuButtons" class="settings-textarea" placeholder='[{"buttonId":"menu","buttonText":"Open Menu"}]'></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.2L18.5 21 12 16.9 5.5 21 7.5 13.2 2 9h7z"/></svg>
+          Settings Notes
+        </div>
+        <div class="settings-note">
+          <b style="color:var(--text)">Quick guide:</b><br>
+          Update identity fields if you want the bot name and sticker credit to match your brand.<br>
+          Keep command mode on <b style="color:var(--text)">Public</b> if everyone should use the bot.
+        </div>
+        <div class="settings-note" style="margin-top:12px">
+          <b style="color:var(--text)">Message templates:</b><br>
+          Leave fields blank if you do not use alive/menu media or custom button payloads.<br>
+          If you paste button JSON, make sure it is valid JSON text.
+        </div>
+        <div class="settings-note" style="margin-top:12px">
+          <b style="color:var(--text)">Suggested values:</b><br>
+          Bot Name: short and clear.<br>
+          Pack Name: sticker pack label.<br>
+          Timezone: match your location for schedules.
         </div>
       </div>
     </div>
@@ -622,8 +924,21 @@
       <div class="card">
         <div class="card-title">⏰ Add Scheduled Chat</div>
         <div class="form-group">
-          <label>Target Chat / Group</label>
+          <label>Target Type</label>
+          <select id="scheduleTargetMode" onchange="toggleScheduleTargetMode()">
+            <option value="group">Group</option>
+            <option value="personal">Personal</option>
+            <option value="manual">Manual Chat ID</option>
+          </select>
+        </div>
+        <div class="form-group" id="scheduleTargetSelectWrap">
+          <label id="scheduleTargetLabel">Target Group</label>
           <select id="scheduleChatId"></select>
+        </div>
+        <div class="form-group" id="scheduleManualWrap" style="display:none">
+          <label>Manual Chat ID / Number</label>
+          <input type="text" id="scheduleManualChatId" placeholder="60123456789 atau 60123456789@s.whatsapp.net" />
+          <small style="display:block;font-size:12px;color:var(--text-dim);margin-top:6px">Untuk personal, nombor tanpa simbol akan auto jadi @s.whatsapp.net.</small>
         </div>
         <div class="form-group">
           <label>Type</label>
@@ -993,7 +1308,11 @@ function showTab(name, btn) {
   document.querySelectorAll('[id^=tab-]').forEach(el => el.style.display = 'none')
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'))
   document.getElementById('tab-' + name).style.display = ''
-  btn.classList.add('active')
+
+  const activeControls = document.querySelectorAll(`[data-tab="${name}"]`)
+  activeControls.forEach(el => el.classList.add('active'))
+  if (btn) btn.classList.add('active')
+
   closeSidebar()
   if (name === 'customcmds') loadCustomCommands()
   if (name === 'schedules') loadSchedules(true)
@@ -1267,8 +1586,9 @@ async function loadStatus() {
       emoji.style.display = ''
     }
 
-    document.getElementById('statusName').textContent = data.account?.name || data.botName || 'Ilussion Bot'
-    document.getElementById('statusNumber').textContent = data.account?.id?.split(':')[0] || 'Not connected'
+    const statusPhone = getAccountPhone(data)
+    document.getElementById('statusName').textContent = getAccountName(data)
+    document.getElementById('statusNumber').textContent = statusPhone ? '+' + statusPhone : 'Not connected'
     document.getElementById('statusUptime').textContent = formatUptime(data.uptime)
 
     const meta = document.getElementById('statusMeta')
@@ -1289,8 +1609,10 @@ async function loadSettings() {
     const data = await fetch('/api/settings').then(r => r.json())
     document.getElementById('botName').value = data.botName || ''
     document.getElementById('botOwner').value = data.botOwner || ''
+    document.getElementById('author').value = data.author || ''
     document.getElementById('ownerNumber').value = data.ownerNumber || '60123456789'
     document.getElementById('commandMode').value = data.commandMode || 'public'
+    document.getElementById('commandReplyAsNormalMessage').checked = data.commandReplyAsNormalMessage !== false
     const tzSelect = document.getElementById('timeZone')
     const currentTz = data.timeZone || 'Asia/Kuala_Lumpur'
     if (![...tzSelect.options].some((opt) => opt.value === currentTz)) {
@@ -1302,6 +1624,12 @@ async function loadSettings() {
     tzSelect.value = currentTz
     document.getElementById('packname').value = data.packname || ''
     document.getElementById('description').value = data.description || ''
+    document.getElementById('aliveMessage').value = data.aliveMessage || ''
+    document.getElementById('aliveMediaUrl').value = data.aliveMediaUrl || ''
+    document.getElementById('aliveButtons').value = data.aliveButtons || ''
+    document.getElementById('menuMessage').value = data.menuMessage || ''
+    document.getElementById('menuMediaUrl').value = data.menuMediaUrl || ''
+    document.getElementById('menuButtons').value = data.menuButtons || ''
   } catch(e) {}
 }
 
@@ -1309,11 +1637,19 @@ async function saveSettings() {
   const payload = {
     botName: document.getElementById('botName').value.trim(),
     botOwner: document.getElementById('botOwner').value.trim(),
+    author: document.getElementById('author').value.trim(),
     ownerNumber: document.getElementById('ownerNumber').value.trim(),
     commandMode: document.getElementById('commandMode').value,
+    commandReplyAsNormalMessage: document.getElementById('commandReplyAsNormalMessage').checked,
     timeZone: document.getElementById('timeZone').value.trim(),
     packname: document.getElementById('packname').value.trim(),
     description: document.getElementById('description').value.trim(),
+    aliveMessage: document.getElementById('aliveMessage').value.trim(),
+    aliveMediaUrl: document.getElementById('aliveMediaUrl').value.trim(),
+    aliveButtons: document.getElementById('aliveButtons').value.trim(),
+    menuMessage: document.getElementById('menuMessage').value.trim(),
+    menuMediaUrl: document.getElementById('menuMediaUrl').value.trim(),
+    menuButtons: document.getElementById('menuButtons').value.trim(),
   }
   try {
     const res = await fetch('/api/settings', {
@@ -1362,13 +1698,11 @@ function escapeHtml(s) {
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open')
   document.getElementById('sidebarOverlay').classList.add('active')
-  document.getElementById('menuFab').style.display = 'none'
 }
 
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open')
   document.getElementById('sidebarOverlay').classList.remove('active')
-  document.getElementById('menuFab').style.display = ''
 }
 
 // ── Groups ────────────────────────────────────────────────────────────────────
@@ -1409,7 +1743,49 @@ async function loadGroups() {
 }
 
 // ── Schedules ────────────────────────────────────────────────────────────────
-let scheduleGroupCache = []
+let scheduleChatCache = []
+
+function getScheduleTargetMode() {
+  const mode = String(document.getElementById('scheduleTargetMode')?.value || 'group').trim().toLowerCase()
+  if (mode === 'personal' || mode === 'manual') return mode
+  return 'group'
+}
+
+function normalizeScheduleChatId(raw, mode = 'manual') {
+  const value = String(raw || '').trim()
+  if (!value) return ''
+  if (value.includes('@')) return value
+  if (mode === 'group') return value.endsWith('@g.us') ? value : ''
+  const digits = value.replace(/[^0-9]/g, '')
+  return digits ? `${digits}@s.whatsapp.net` : ''
+}
+
+function toggleScheduleTargetMode() {
+  const mode = getScheduleTargetMode()
+  const label = document.getElementById('scheduleTargetLabel')
+  const selectWrap = document.getElementById('scheduleTargetSelectWrap')
+  const manualWrap = document.getElementById('scheduleManualWrap')
+  const sel = document.getElementById('scheduleChatId')
+
+  if (mode === 'manual') {
+    if (label) label.textContent = 'Target Chat'
+    if (selectWrap) selectWrap.style.display = 'none'
+    if (manualWrap) manualWrap.style.display = ''
+    return
+  }
+
+  if (label) label.textContent = mode === 'personal' ? 'Target Personal' : 'Target Group'
+  if (selectWrap) selectWrap.style.display = ''
+  if (manualWrap) manualWrap.style.display = 'none'
+
+  const filtered = scheduleChatCache.filter((c) => c.type === mode)
+  if (!filtered.length) {
+    sel.innerHTML = `<option value="">No ${mode} chat available</option>`
+    return
+  }
+
+  sel.innerHTML = filtered.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)} (${escapeHtml(item.id)})</option>`).join('')
+}
 
 function toggleScheduleDateField() {
   const type = document.getElementById('scheduleType').value
@@ -1423,23 +1799,32 @@ function formatDateTime(ts) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
 
-async function loadScheduleGroups() {
+async function loadScheduleTargets() {
   const sel = document.getElementById('scheduleChatId')
   try {
-    const groups = await fetch('/api/groups').then(r => r.json())
-    scheduleGroupCache = Array.isArray(groups) ? groups : []
-    if (!scheduleGroupCache.length) {
-      sel.innerHTML = '<option value="">No groups available</option>'
+    const chats = await fetch('/api/chats').then(r => r.json())
+    scheduleChatCache = Array.isArray(chats)
+      ? chats
+          .filter((item) => item && (item.type === 'group' || item.type === 'personal') && item.id)
+          .map((item) => ({
+            id: String(item.id),
+            type: item.type === 'personal' ? 'personal' : 'group',
+            name: String(item.name || item.id),
+          }))
+      : []
+
+    if (!scheduleChatCache.length) {
+      sel.innerHTML = '<option value="">No chat available</option>'
       return
     }
-    sel.innerHTML = scheduleGroupCache.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)} (${escapeHtml(g.id)})</option>`).join('')
+    toggleScheduleTargetMode()
   } catch (e) {
-    sel.innerHTML = '<option value="">Failed to load groups</option>'
+    sel.innerHTML = '<option value="">Failed to load chat list</option>'
   }
 }
 
 async function loadSchedules(withGroups = false) {
-  if (withGroups) await loadScheduleGroups()
+  if (withGroups) await loadScheduleTargets()
   const el = document.getElementById('schedulesContent')
   el.innerHTML = '<p style="color:var(--text-dim);font-size:13px">Loading...</p>'
   try {
@@ -1453,9 +1838,15 @@ async function loadSchedules(withGroups = false) {
       return
     }
 
-    const groupName = (chatId) => {
-      const found = scheduleGroupCache.find(g => g.id === chatId)
+    const chatName = (chatId) => {
+      const found = scheduleChatCache.find(c => c.id === chatId)
       return found ? found.name : chatId
+    }
+
+    const chatIcon = (chatId) => {
+      if (String(chatId || '').endsWith('@g.us')) return '👥'
+      if (String(chatId || '').endsWith('@s.whatsapp.net') || String(chatId || '').endsWith('@lid')) return '👤'
+      return '💬'
     }
 
     const grouped = schedules.reduce((acc, item) => {
@@ -1489,7 +1880,7 @@ async function loadSchedules(withGroups = false) {
       return `
         <div class="card list-frame" style="margin-bottom:14px;padding:0;overflow:hidden">
           <div class="list-head">
-            <div style="font-weight:700">👥 ${escapeHtml(groupName(chatId))}</div>
+            <div style="font-weight:700">${chatIcon(chatId)} ${escapeHtml(chatName(chatId))}</div>
             <div style="font-size:12px;color:var(--text-dim)">${rows.length} schedule</div>
           </div>
           <div style="overflow-x:auto">
@@ -1517,13 +1908,18 @@ async function loadSchedules(withGroups = false) {
 }
 
 async function addSchedule() {
-  const chatId = document.getElementById('scheduleChatId').value
+  const mode = getScheduleTargetMode()
+  const selectedChatId = document.getElementById('scheduleChatId').value
+  const manualRaw = document.getElementById('scheduleManualChatId').value
+  const chatId = mode === 'manual'
+    ? normalizeScheduleChatId(manualRaw, 'manual')
+    : normalizeScheduleChatId(selectedChatId, mode)
   const type = document.getElementById('scheduleType').value
   const date = document.getElementById('scheduleDate').value
   const time = document.getElementById('scheduleTime').value
   const message = document.getElementById('scheduleMessage').value.trim()
 
-  if (!chatId) return showToast('Pilih chat/group dulu.', 'error')
+  if (!chatId) return showToast('Pilih target chat dulu.', 'error')
   if (!time) return showToast('Masa diperlukan.', 'error')
   if (!message) return showToast('Mesej tak boleh kosong.', 'error')
   if (type === 'once' && !date) return showToast('Tarikh diperlukan untuk once.', 'error')
@@ -1542,6 +1938,7 @@ async function addSchedule() {
 
     showToast('Schedule berjaya ditambah.')
     document.getElementById('scheduleMessage').value = ''
+    if (mode === 'manual') document.getElementById('scheduleManualChatId').value = ''
     if (type === 'once') document.getElementById('scheduleDate').value = ''
     document.getElementById('scheduleTime').value = ''
     loadSchedules()
@@ -1698,6 +2095,27 @@ function infoRow(label, value, valueColor) {
   </div>`
 }
 
+function getAccountName(status) {
+  const account = status?.account || {}
+  return account.name || account.notify || account.pushName || status?.accountName || status?.botName || 'Ilussion Bot'
+}
+
+function getAccountPhone(status) {
+  const account = status?.account || {}
+  const normalized = String(status?.accountPhone || account.phone || '').replace(/\D/g, '')
+  if (normalized) return normalized
+
+  const rawCandidates = [account.id, account.jid, account.lid]
+  for (const rawValue of rawCandidates) {
+    const raw = String(rawValue || '').trim()
+    if (!raw) continue
+    const base = raw.includes(':') ? raw.split(':')[0] : raw.split('@')[0]
+    const digits = base.replace(/\D/g, '')
+    if (digits) return digits
+  }
+  return ''
+}
+
 async function loadSession() {
   try {
     const [qrData, status] = await Promise.all([
@@ -1719,10 +2137,11 @@ async function loadSession() {
       // Populate connected account box
       const acct = document.getElementById('qrConnectedAccount')
       if (status.account) {
-        const num = status.account.id?.split(':')[0] || ''
+        const num = getAccountPhone(status)
+        const name = getAccountName(status)
         acct.innerHTML =
-          `<div><b>📱 ${status.account.name || 'Unknown'}</b></div>` +
-          `<div style="color:var(--text-dim)">+${num}</div>` +
+          `<div><b>📱 ${name || 'Unknown'}</b></div>` +
+          `<div style="color:var(--text-dim)">${num ? '+' + num : '—'}</div>` +
           `<div style="margin-top:4px;font-size:12px;color:var(--text-dim)">Uptime: ${fmtUptime(status.uptime)}</div>`
       } else {
         acct.innerHTML = `<span style="color:var(--text-dim);font-size:12px">Account info loading...</span>`
@@ -1760,11 +2179,9 @@ async function loadSession() {
       ? `<span style="color:var(--green)">✓ Set</span>`
       : `<span style="color:var(--text-dim)">— Not set</span>`
 
-    let num = '—', name = '—'
-    if (status.account) {
-      num  = '+' + (status.account.id?.split(':')[0] || '—')
-      name = status.account.name || '—'
-    }
+    const parsedPhone = getAccountPhone(status)
+    const num = parsedPhone ? '+' + parsedPhone : '—'
+    const name = getAccountName(status) || '—'
 
     grid.innerHTML =
       infoRow('Status', statusBadge) +
