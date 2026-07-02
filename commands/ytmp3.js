@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const yts = require('yt-search');
+const ytdl = require('ytdl-core');
 const { toAudio } = require('../lib/converter');
 const ytdlp = require('../lib/ytdlp');
 
@@ -40,6 +41,27 @@ function isYtUrl(text) {
 
 function isPlaylistUrl(text) {
     return /[?&]list=/i.test(text);
+}
+
+function assertSafeRemoteUrl(url) {
+    let parsed;
+    try { parsed = new URL(url); } catch (_) { throw new Error('invalid download URL'); }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new Error('unsupported URL scheme');
+    }
+    const host = parsed.hostname.toLowerCase();
+    const isPrivate =
+        host === 'localhost' ||
+        /^127\./.test(host) ||
+        /^10\./.test(host) ||
+        /^192\.168\./.test(host) ||
+        /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+        /^169\.254\./.test(host) ||
+        host === '0.0.0.0' ||
+        host === '::1' ||
+        host.endsWith('.local') ||
+        host.endsWith('.internal');
+    if (isPrivate) throw new Error('blocked private/internal host');
 }
 
 function parseDurationSeconds(value) {
@@ -127,6 +149,23 @@ async function apiRapidYt(url) {
     throw new Error('RapidYt: no link');
 }
 
+async function apiDirectYtdl(url) {
+    const info = await retry(() => ytdl.getInfo(url), 2);
+    const audioFormats = info.formats
+        .filter(format => format.hasAudio && !format.hasVideo && format.url)
+        .sort((left, right) => (Number(right.audioBitrate) || 0) - (Number(left.audioBitrate) || 0));
+
+    if (!audioFormats.length) {
+        throw new Error('DirectYtdl: no audio stream');
+    }
+
+    const preferred = audioFormats.find(format => !format.isHLS) || audioFormats[0];
+    return {
+        dl: preferred.url,
+        title: info.videoDetails?.title
+    };
+}
+
 function enc(u) { return encodeURIComponent(u); }
 function extractId(url) {
     const m = url.match(/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/);
@@ -134,6 +173,7 @@ function extractId(url) {
 }
 
 const PROVIDERS = [
+    { name: 'DirectYtdl', fn: apiDirectYtdl },
     { name: 'EliteProTech', fn: apiEliteProTech },
     { name: 'Yupra', fn: apiYupra },
     { name: 'Okatsu', fn: apiOkatsu },
@@ -145,6 +185,7 @@ const PROVIDERS = [
 
 /* ── Buffer downloader with stream fallback ── */
 async function downloadBuffer(dlUrl) {
+    assertSafeRemoteUrl(dlUrl);
     try {
         const r = await axios.get(dlUrl, DL_OPT);
         const buf = Buffer.from(r.data);
