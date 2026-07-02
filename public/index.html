@@ -635,6 +635,15 @@
   .list-table tbody .list-row:last-child {
     border-bottom: none;
   }
+
+  /* Page headers + consistent tab spacing */
+  .tab-stack { display: flex; flex-direction: column; gap: 16px; }
+  .page-head { margin: 2px 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .page-head h1 { font-size: 18px; font-weight: 700; letter-spacing: -.01em; color: var(--text); display: flex; align-items: center; gap: 9px; }
+  .page-head h1 svg { width: 18px; height: 18px; color: var(--green); flex-shrink: 0; }
+  .page-head p { margin-top: 5px; font-size: 13px; color: var(--text-dim); line-height: 1.55; }
+  .form-group:last-child { margin-bottom: 0; }
+  @media (max-width: 600px) { .page-head h1 { font-size: 16px; } .container { padding: 20px 16px 40px; } }
 </style>
 </head>
 <body>
@@ -696,6 +705,11 @@
 
   <!-- Settings Tab -->
   <div id="tab-settings">
+    <div class="page-head">
+      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>Bot Settings</h1>
+      <p>Configure your bot identity, access control, message templates, logs and session.</p>
+    </div>
+    <div class="tab-stack">
     <div class="grid grid-2">
       <div class="card">
         <div class="card-title">
@@ -770,7 +784,7 @@
       </div>
     </div>
 
-    <div class="grid grid-2" style="margin-top:16px">
+    <div class="grid grid-2">
       <div class="card">
         <div class="card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
@@ -826,7 +840,7 @@
       </div>
     </div>
 
-    <div class="grid grid-2" style="margin-top:16px">
+    <div class="grid grid-2">
       <div class="card">
         <div class="card-title" style="justify-content:space-between">
           <span>
@@ -881,10 +895,15 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
 
   <!-- Group Setting Tab -->
   <div id="tab-groupsettings" style="display:none">
+    <div class="page-head">
+      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Group Settings</h1>
+      <p>Review auto features, connected groups and banned users.</p>
+    </div>
     <div class="grid" style="gap:16px">
       <div class="card">
         <div class="card-title">
@@ -920,7 +939,12 @@
 
   <!-- Logs Tab -->
   <div id="tab-schedules" style="display:none">
-    <div class="grid grid-2" style="margin-bottom:16px">
+    <div class="page-head">
+      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Scheduled Messages</h1>
+      <p>Automate daily or one-time messages to your groups and contacts.</p>
+    </div>
+    <div class="tab-stack">
+    <div class="grid grid-2">
       <div class="card">
         <div class="card-title">⏰ Add Scheduled Chat</div>
         <div class="form-group">
@@ -977,10 +1001,15 @@
       </div>
       <div id="schedulesContent"><p style="color:var(--text-dim);font-size:13px">Loading...</p></div>
     </div>
+    </div>
   </div>
 
   <!-- Command List Tab -->
   <div id="tab-commandlist" style="display:none">
+    <div class="page-head">
+      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Command List</h1>
+      <p>Every command your bot understands, grouped by category.</p>
+    </div>
     <div class="card">
       <div class="card-title" style="justify-content:space-between">
         <span>
@@ -995,6 +1024,10 @@
 
   <!-- Custom Commands Tab -->
   <div id="tab-customcmds" style="display:none">
+    <div class="page-head">
+      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Custom Commands</h1>
+      <p>Create, edit and manage your own bot commands and replies.</p>
+    </div>
     <div class="cc-shell">
     <div class="grid cc-grid" style="margin-bottom:0">
 
